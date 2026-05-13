@@ -1,6 +1,6 @@
 # Parameter Validation
 
-`TemplateParameterDefinition` exposes four optional fields beyond `name` and `value` that let providers declare typing, mandatoriness, override permissions, and status visibility. For the resolution model and how these fields interact with `valueFrom`, see [Parameters](../concepts/parameters.md).
+`TemplateParameterDefinition` exposes four optional fields beyond `name` and `value` that let providers declare a parameter's type, whether it is required, whether the consumer is allowed to override it, and whether its resolved value is exposed in status. For the resolution model and how these fields interact with `valueFrom`, see [Parameters](../concepts/parameters.md).
 
 ## Fields on `TemplateParameterDefinition`
 

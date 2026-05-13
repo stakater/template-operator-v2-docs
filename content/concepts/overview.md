@@ -38,7 +38,7 @@ It also enables one-to-many fan-out: a single `Template` can be instantiated by 
 A `Template` exposes one of two engines, enforced by an API-level rule (`has(self.gotemplate) != has(self.helm)`):
 
 - [`spec.gotemplate`](./gotemplate.md): inline Go template with Sprig functions.
-- [`spec.helm`](./helm.md): a chart pulled from an HTTP/HTTPS or OCI registry.
+- [`spec.helm`](./helm.md): a chart pulled from an `HTTP`/`HTTPS` or OCI registry.
 
 Both engines see the same data (`.parameters`, `.instance`) and produce the same kind of output: a stream of Kubernetes manifests the operator then applies.
 

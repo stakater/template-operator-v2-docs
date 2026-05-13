@@ -2,7 +2,7 @@
 
 Examples of using a Helm chart as a `Template`'s body. For the chart-source rules, Helm SDK selection, `valuesTemplate`, release-name semantics, and validation behavior, see [Helm](../concepts/helm.md). For private repositories, see [Deploying private Helm charts](./deploying-private-helm-charts.md).
 
-## Scenario 1: public HTTPS repository
+## Scenario 1: public `HTTPS` repository
 
 Bill publishes the upstream `nginx` chart from Bitnami, parameterized so each consumer can pick a replica count.
 
@@ -53,7 +53,7 @@ spec:
 
 ## Scenario 2: OCI registry
 
-OCI-hosted charts use the `oci://` scheme. Everything else is identical to the HTTPS case:
+OCI-hosted charts use the `oci://` scheme. Everything else is identical to the `HTTPS` case:
 
 ```yaml
 spec:
@@ -101,7 +101,7 @@ Each `TemplateInstance` automatically gets an ingress host derived from its own 
 ## Repository URL rules
 
 - `spec.helm.chart.repository.url` must match the pattern `^(https?|oci)://`.
-- `version` must follow [SemVer 2](https://semver.org), e.g. `1.2.3`, `v1.2.3`, `1.2.3-rc.1+meta`. Ranges, `latest`, and floating versions are rejected at admission time.
+- `version` must follow [`SemVer` 2](https://semver.org), e.g. `1.2.3`, `v1.2.3`, `1.2.3-rc.1+meta`. Ranges, `latest`, and floating versions are rejected at admission time.
 
 ## Status on failure
 

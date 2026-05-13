@@ -59,7 +59,7 @@ The instance UID is in `kubectl get templateinstance <name> -o jsonpath='{.metad
 **Resolution**: check each of these in turn:
 
 - `spec.helm.chart.repository.url` matches `^(https?|oci)://`.
-- `spec.helm.chart.repository.version` follows SemVer 2 (`MAJOR.MINOR.PATCH`). Ranges and `latest` are rejected.
+- `spec.helm.chart.repository.version` follows `SemVer` 2 (`MAJOR.MINOR.PATCH`). Ranges and `latest` are rejected.
 - For private repositories, `auth.secretRef` is set and the `Secret` lives in the same namespace as the `Template`.
 - The auth `Secret` carries the right keys: `username` + `password` (for basic auth and token-based registries, where the token goes in `password`), or `.dockerconfigjson` (for OCI registries with a docker config).
 

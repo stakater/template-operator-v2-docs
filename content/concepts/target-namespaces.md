@@ -29,7 +29,7 @@ spec:
           - team-c
 ```
 
-A `TemplateInstance` is admitted iff its namespace name appears in the list.
+A `TemplateInstance` is admitted only if its namespace name appears in the list.
 
 ### Wildcard
 

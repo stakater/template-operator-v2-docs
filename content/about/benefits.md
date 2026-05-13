@@ -8,7 +8,7 @@ Platform teams maintain a single `Template` in their provider namespace. Any num
 
 ## 2. Two rendering engines
 
-A `Template` is either a Go template (`spec.gotemplate`), with the full Go `text/template` syntax plus a sandboxed [Sprig](https://masterminds.github.io/sprig/) function set, or a Helm chart (`spec.helm`) pulled from an HTTP, HTTPS, or OCI repository. Exactly one is required; the API forbids both. The same parameter machinery feeds either engine.
+A `Template` is either a Go template (`spec.gotemplate`), with the full Go `text/template` syntax plus a sandboxed [Sprig](https://masterminds.github.io/sprig/) function set, or a Helm chart (`spec.helm`) pulled from an `HTTP`, `HTTPS`, or OCI repository. Exactly one is required; the API forbids both. The same parameter machinery feeds either engine.
 
 ## 3. Parameter resolution at render time
 

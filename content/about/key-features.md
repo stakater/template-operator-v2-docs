@@ -10,9 +10,9 @@ A `Template` exposes exactly one of two engines, enforced by an API-level valida
 
 ### Helm
 
-`spec.helm` references a chart by repository URL, chart name, and SemVer 2 version:
+`spec.helm` references a chart by repository URL, chart name, and `SemVer` 2 version:
 
-- HTTP/HTTPS repositories: `url: https://charts.example.com`
+- `HTTP`/`HTTPS` repositories: `url: https://charts.example.com`
 - OCI registries: `url: oci://ghcr.io/org/charts`
 
 Both Helm v3 and v4 SDKs are bundled. Pick with `spec.helm.version: v3` or `v4`. When omitted, `v4` is the default. Optional `spec.helm.valuesTemplate` is itself a Go template that, after rendering, is parsed as YAML and merged over the chart's default values.

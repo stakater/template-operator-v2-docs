@@ -25,6 +25,7 @@ api-reference: crd-ref-docs $(WORK_DIR)/operator/api/v2alpha1 ## Generate conten
 		--renderer=markdown \
 		--output-path=content/reference/api.md
 	@sed -i 's|\[AllowDeny\](#allowdeny)|AllowDeny|g' content/reference/api.md
+	@sed -i '1i <!-- markdownlint-disable -->' content/reference/api.md
 	@echo "Wrote content/reference/api.md (OPERATOR_REF=$(OPERATOR_REF))"
 
 .PHONY: crd-ref-docs

@@ -28,6 +28,6 @@ The `Template` controller watches only itself.
 |----------|---------|---------|
 | `/healthz` | `:8081` | Liveness, controller-runtime `healthz.Ping`. |
 | `/readyz` | `:8081` | Readiness, controller-runtime `healthz.Ping`. |
-| `/metrics` | `:8443` HTTPS (default-disabled binding `0`) | Controller-runtime metrics. Authn/authz via `WithAuthenticationAndAuthorization` filter when `--metrics-secure=true`. |
+| `/metrics` | `:8443` `HTTPS` (default-disabled binding `0`) | Controller-runtime metrics. Authn/authz via `WithAuthenticationAndAuthorization` filter when `--metrics-secure=true`. |
 
-HTTP/2 is disabled by default for both metrics and webhook servers (see [GHSA-qppj-fm5r-hxr3](https://github.com/advisories/GHSA-qppj-fm5r-hxr3) and [GHSA-4374-p667-p6c8](https://github.com/advisories/GHSA-4374-p667-p6c8)).
+`HTTP/2` is disabled by default for both metrics and webhook servers (see [GHSA-qppj-fm5r-hxr3](https://github.com/advisories/GHSA-qppj-fm5r-hxr3) and [GHSA-4374-p667-p6c8](https://github.com/advisories/GHSA-4374-p667-p6c8)).

@@ -17,6 +17,6 @@ The operator uses controller-runtime's structured logger. Every reconcile loop l
 
 ## Metrics
 
-The metrics server is the standard controller-runtime metrics endpoint, exposed on `:8443` (HTTPS) or `:8080` (HTTP). It is disabled by default (`--metrics-bind-address=0`); enable it with `--metrics-bind-address=:8443`. When secure, requests are filtered by `WithAuthenticationAndAuthorization`, so callers need a `ClusterRole` granting access to the metrics endpoint (the chart provides `template-operator-v2-metrics-reader`).
+The metrics server is the standard controller-runtime metrics endpoint, exposed on `:8443` (`HTTPS`) or `:8080` (`HTTP`). It is disabled by default (`--metrics-bind-address=0`); enable it with `--metrics-bind-address=:8443`. When secure, requests are filtered by `WithAuthenticationAndAuthorization`, so callers need a `ClusterRole` granting access to the metrics endpoint (the chart provides `template-operator-v2-metrics-reader`).
 
 The exposed metrics are the controller-runtime defaults: `controller_runtime_reconcile_total`, `controller_runtime_reconcile_errors_total`, `controller_runtime_reconcile_time_seconds`, plus standard Go runtime metrics. There are no custom metrics defined for the Template controllers themselves at this version.

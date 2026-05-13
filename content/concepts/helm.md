@@ -4,9 +4,9 @@
 
 ## When to pick helm over gotemplate
 
-- The thing you want to deploy is already packaged as a Helm chart (cert-manager, kube-prometheus-stack, your own internal charts).
+- The thing you want to deploy is already packaged as a Helm chart (cert-manager, kube-Prometheus-stack, your own internal charts).
 - The output is large enough that maintaining it inline as a gotemplate is awkward.
-- You want chart-level versioning (the `version` field of `spec.helm.chart.repository` pins a SemVer).
+- You want chart-level versioning (the `version` field of `spec.helm.chart.repository` pins a `SemVer`).
 
 For ad-hoc resources that don't already have a chart, [gotemplate](./gotemplate.md) is lighter weight.
 
@@ -24,9 +24,9 @@ spec:
         version: 18.1.0
 ```
 
-- **HTTP/HTTPS repositories**: `url: https://...`. The repository must expose an `index.yaml`.
+- **`HTTP`/`HTTPS` repositories**: `url: https://...`. The repository must expose an `index.yaml`.
 - **OCI registries**: `url: oci://...`. The chart reference becomes `<url>/<name>:<version>`.
-- **Version**: must match SemVer 2 (`MAJOR.MINOR.PATCH`, with optional pre-release and build metadata). Ranges, `latest`, or floating versions are rejected.
+- **Version**: must match `SemVer` 2 (`MAJOR.MINOR.PATCH`, with optional pre-release and build metadata). Ranges, `latest`, or floating versions are rejected.
 
 ## Helm v3 vs v4
 
@@ -81,7 +81,7 @@ Supported credential layouts:
 
 | Source | Secret keys | Behavior |
 |--------|-------------|----------|
-| HTTP(S) | `username`, `password` | Basic auth on the pull request. |
+| `HTTP`(S) | `username`, `password` | Basic auth on the pull request. |
 | OCI | `username`, `password` | Used as registry basic auth. |
 | OCI | `.dockerconfigjson` (a `kubernetes.io/dockerconfigjson` Secret) | The operator writes the config to a temp file and passes it to the OCI client. |
 

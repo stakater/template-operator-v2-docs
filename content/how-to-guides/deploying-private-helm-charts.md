@@ -1,6 +1,6 @@
 # Deploying Private Helm Charts
 
-A `Template` can pull from a private Helm repository, either an HTTP/HTTPS repo with basic auth, or an OCI registry with basic auth or a Docker config.
+A `Template` can pull from a private Helm repository, either an `HTTP`/`HTTPS` repo with basic auth, or an OCI registry with basic auth or a Docker config.
 
 Authentication is configured by referencing a `Secret` from `spec.helm.chart.repository.auth.secretRef`. The `Secret` **must live in the same namespace as the `Template`** (the provider namespace), not the consumer namespace.
 
@@ -10,16 +10,16 @@ The operator reads the following keys from the referenced `Secret`:
 
 | Source type | Keys | Behavior |
 |-------------|------|----------|
-| HTTP(S) repository | `username`, `password` | Sent as HTTP Basic auth on chart pull. |
-| OCI registry | `username`, `password` | Sent as HTTP Basic auth to the registry. |
+| `HTTP`(S) repository | `username`, `password` | Sent as `HTTP` Basic auth on chart pull. |
+| OCI registry | `username`, `password` | Sent as `HTTP` Basic auth to the registry. |
 | OCI registry | `.dockerconfigjson` | A standard Kubernetes `kubernetes.io/dockerconfigjson` secret. The operator writes it to a temp file and passes it to the OCI client. |
 
 If both `username`/`password` and `.dockerconfigjson` are present in the same secret, `username`/`password` win.
 
 !!! note "Token-based authentication"
-    For registries that authenticate with a personal access token, robot token, or API key (GitHub Container Registry, GitLab, Harbor, JFrog Artifactory, and similar), place the token in the `password` field of the Secret. Set `username` to whatever value the registry expects, typically your account name or a registry-specific placeholder such as `token` or `oauth2`. The operator passes both fields to Helm as HTTP Basic auth; the registry decides how to interpret them.
+    For registries that authenticate with a personal access token, robot token, or API key (GitHub Container Registry, GitLab, Harbor, and similar), place the token in the `password` field of the Secret. Set `username` to whatever value the registry expects, typically your account name or a registry-specific placeholder such as `token` or `oauth2`. The operator passes both fields to Helm as `HTTP` Basic auth; the registry decides how to interpret them.
 
-## Private HTTPS repository
+## Private `HTTPS` repository
 
 ```yaml
 apiVersion: v1
