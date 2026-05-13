@@ -3147,7 +3147,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
   <span class="md-ellipsis">
     
   
-    API Reference
+    Api
   
 
     
@@ -3355,7 +3355,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <p>A <code>Template</code> exposes one of two engines, enforced by an API-level rule (<code>has(self.gotemplate) != has(self.helm)</code>):</p>
 <ul>
 <li><a href="gotemplate.html"><code>spec.gotemplate</code></a>: inline Go template with Sprig functions.</li>
-<li><a href="helm.html"><code>spec.helm</code></a>: a chart pulled from an HTTP/HTTPS or OCI registry.</li>
+<li><a href="helm.html"><code>spec.helm</code></a>: a chart pulled from an <code>HTTP</code>/<code>HTTPS</code> or OCI registry.</li>
 </ul>
 <p>Both engines see the same data (<code>.parameters</code>, <code>.instance</code>) and produce the same kind of output: a stream of Kubernetes manifests the operator then applies.</p>
 <h2 id="the-top-level-fields-at-a-glance">The top-level fields, at a glance<a class="headerlink" href="#the-top-level-fields-at-a-glance" title="Permanent link">#</a></h2>

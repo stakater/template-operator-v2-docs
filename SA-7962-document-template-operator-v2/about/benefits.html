@@ -3169,7 +3169,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
   <span class="md-ellipsis">
     
   
-    API Reference
+    Api
   
 
     
@@ -3374,7 +3374,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <h2 id="1-author-once-instantiate-many">1. Author once, instantiate many<a class="headerlink" href="#1-author-once-instantiate-many" title="Permanent link">#</a></h2>
 <p>Platform teams maintain a single <code>Template</code> in their provider namespace. Any number of <code>TemplateInstance</code> resources, in any permitted consumer namespace, can render that <code>Template</code> with their own parameter overrides.</p>
 <h2 id="2-two-rendering-engines">2. Two rendering engines<a class="headerlink" href="#2-two-rendering-engines" title="Permanent link">#</a></h2>
-<p>A <code>Template</code> is either a Go template (<code>spec.gotemplate</code>), with the full Go <code>text/template</code> syntax plus a sandboxed <a href="https://masterminds.github.io/sprig/">Sprig</a> function set, or a Helm chart (<code>spec.helm</code>) pulled from an HTTP, HTTPS, or OCI repository. Exactly one is required; the API forbids both. The same parameter machinery feeds either engine.</p>
+<p>A <code>Template</code> is either a Go template (<code>spec.gotemplate</code>), with the full Go <code>text/template</code> syntax plus a sandboxed <a href="https://masterminds.github.io/sprig/">Sprig</a> function set, or a Helm chart (<code>spec.helm</code>) pulled from an <code>HTTP</code>, <code>HTTPS</code>, or OCI repository. Exactly one is required; the API forbids both. The same parameter machinery feeds either engine.</p>
 <h2 id="3-parameter-resolution-at-render-time">3. Parameter resolution at render time<a class="headerlink" href="#3-parameter-resolution-at-render-time" title="Permanent link">#</a></h2>
 <p>Parameter overrides on a <code>TemplateInstance</code> can be:</p>
 <ul>

@@ -3114,7 +3114,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
   <span class="md-ellipsis">
     
   
-    API Reference
+    Api
   
 
     
@@ -3274,7 +3274,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <li><code>Failed to set up parameter watches</code>, non-fatal; resolution still works via direct GET/LIST but external changes won't trigger re-reconciliation.</li>
 </ul>
 <h2 id="metrics">Metrics<a class="headerlink" href="#metrics" title="Permanent link">#</a></h2>
-<p>The metrics server is the standard controller-runtime metrics endpoint, exposed on <code>:8443</code> (HTTPS) or <code>:8080</code> (HTTP). It is disabled by default (<code>--metrics-bind-address=0</code>); enable it with <code>--metrics-bind-address=:8443</code>. When secure, requests are filtered by <code>WithAuthenticationAndAuthorization</code>, so callers need a <code>ClusterRole</code> granting access to the metrics endpoint (the chart provides <code>template-operator-v2-metrics-reader</code>).</p>
+<p>The metrics server is the standard controller-runtime metrics endpoint, exposed on <code>:8443</code> (<code>HTTPS</code>) or <code>:8080</code> (<code>HTTP</code>). It is disabled by default (<code>--metrics-bind-address=0</code>); enable it with <code>--metrics-bind-address=:8443</code>. When secure, requests are filtered by <code>WithAuthenticationAndAuthorization</code>, so callers need a <code>ClusterRole</code> granting access to the metrics endpoint (the chart provides <code>template-operator-v2-metrics-reader</code>).</p>
 <p>The exposed metrics are the controller-runtime defaults: <code>controller_runtime_reconcile_total</code>, <code>controller_runtime_reconcile_errors_total</code>, <code>controller_runtime_reconcile_time_seconds</code>, plus standard Go runtime metrics. There are no custom metrics defined for the Template controllers themselves at this version.</p>
 
 

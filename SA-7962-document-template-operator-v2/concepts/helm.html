@@ -3191,7 +3191,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
   <span class="md-ellipsis">
     
   
-    API Reference
+    Api
   
 
     
@@ -3417,9 +3417,9 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <p><code>Template.spec.helm</code> references a Helm chart instead of an inline template. The operator pulls the chart at validation time, renders it with merged values at instance time, and applies the result. Both Helm v3 and v4 SDKs are bundled.</p>
 <h2 id="when-to-pick-helm-over-gotemplate">When to pick helm over gotemplate<a class="headerlink" href="#when-to-pick-helm-over-gotemplate" title="Permanent link">#</a></h2>
 <ul>
-<li>The thing you want to deploy is already packaged as a Helm chart (cert-manager, kube-prometheus-stack, your own internal charts).</li>
+<li>The thing you want to deploy is already packaged as a Helm chart (cert-manager, kube-Prometheus-stack, your own internal charts).</li>
 <li>The output is large enough that maintaining it inline as a gotemplate is awkward.</li>
-<li>You want chart-level versioning (the <code>version</code> field of <code>spec.helm.chart.repository</code> pins a SemVer).</li>
+<li>You want chart-level versioning (the <code>version</code> field of <code>spec.helm.chart.repository</code> pins a <code>SemVer</code>).</li>
 </ul>
 <p>For ad-hoc resources that don't already have a chart, <a href="gotemplate.html">gotemplate</a> is lighter weight.</p>
 <h2 id="chart-source">Chart source<a class="headerlink" href="#chart-source" title="Permanent link">#</a></h2>
@@ -3433,9 +3433,9 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">        </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">18.1.0</span>
 </code></pre></div>
 <ul>
-<li><strong>HTTP/HTTPS repositories</strong>: <code>url: https://...</code>. The repository must expose an <code>index.yaml</code>.</li>
+<li><strong><code>HTTP</code>/<code>HTTPS</code> repositories</strong>: <code>url: https://...</code>. The repository must expose an <code>index.yaml</code>.</li>
 <li><strong>OCI registries</strong>: <code>url: oci://...</code>. The chart reference becomes <code>&lt;url&gt;/&lt;name&gt;:&lt;version&gt;</code>.</li>
-<li><strong>Version</strong>: must match SemVer 2 (<code>MAJOR.MINOR.PATCH</code>, with optional pre-release and build metadata). Ranges, <code>latest</code>, or floating versions are rejected.</li>
+<li><strong>Version</strong>: must match <code>SemVer</code> 2 (<code>MAJOR.MINOR.PATCH</code>, with optional pre-release and build metadata). Ranges, <code>latest</code>, or floating versions are rejected.</li>
 </ul>
 <h2 id="helm-v3-vs-v4">Helm v3 vs v4<a class="headerlink" href="#helm-v3-vs-v4" title="Permanent link">#</a></h2>
 <p><code>spec.helm.version</code> is <code>v3</code> or <code>v4</code>; defaults to <code>v4</code>. Both SDKs are linked into the controller, and <code>Template.spec.helm.version</code> is a runtime switch, there's no separate operator deployment per Helm version.</p>
@@ -3486,7 +3486,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </thead>
 <tbody>
 <tr>
-<td>HTTP(S)</td>
+<td><code>HTTP</code>(S)</td>
 <td><code>username</code>, <code>password</code></td>
 <td>Basic auth on the pull request.</td>
 </tr>

@@ -22,7 +22,7 @@
     
     
       
-        <title>API Reference - Template Operator v2</title>
+        <title>Api - Template Operator v2</title>
       
     
     
@@ -3052,7 +3052,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
   <span class="md-ellipsis">
     
   
-    API Reference
+    Api
   
 
     
@@ -3070,7 +3070,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
   <span class="md-ellipsis">
     
   
-    API Reference
+    Api
   
 
     
@@ -3921,7 +3921,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
   
 
 
-<h1 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h1>
+<!-- markdownlint-disable --><h1 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">#</a></h1>
 <h2 id="packages">Packages<a class="headerlink" href="#packages" title="Permanent link">#</a></h2>
 <ul>
 <li><a href="#templatesv2stakatercomv2alpha1">templates.v2.stakater.com/v2alpha1</a></li>
@@ -3987,10 +3987,8 @@ template-operator service account is allowed to read within that namespace.</p>
 </table>
 <h4 id="templatespec">TemplateSpec<a class="headerlink" href="#templatespec" title="Permanent link">#</a></h4>
 <p>TemplateSpec defines the desired state of Template</p>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#template">Template</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#template">Template</a></p>
 <table>
 <thead>
 <tr>
@@ -4003,7 +4001,7 @@ template-operator service account is allowed to read within that namespace.</p>
 <tbody>
 <tr>
 <td><code>gotemplate</code> <em>string</em></td>
-<td>Exactly one of <code>gotemplate</code> or <code>helm</code> must be specified.<br>gotemplate is rendered using Go text/template.<br>It may emit one or more Kubernetes manifests.<br>Sprig functions are also available <a href="https://masterminds.github.io/sprig/">https://masterminds.github.io/sprig/</a><br>If a namespace-scoped resource omits the namespace field,<br>it will be created in the TemplateInstance's namespace (consumer namespace),<br>NOT in the 'default' namespace or the Template's namespace.<br>Available context (non-exhaustive):<br>- .parameters : resolved parameter values<br>- .instance   : metadata of the TemplateInstance (name, namespace, labels)</td>
+<td>Exactly one of <code>gotemplate</code> or <code>helm</code> must be specified.<br>gotemplate is rendered using Go text/template.<br>It may emit one or more Kubernetes manifests.<br>Sprig functions are also available https://masterminds.github.io/sprig/<br>If a namespace-scoped resource omits the namespace field,<br>it will be created in the TemplateInstance's namespace (consumer namespace),<br>NOT in the 'default' namespace or the Template's namespace.<br>Available context (non-exhaustive):<br>- .parameters : resolved parameter values<br>- .instance   : metadata of the TemplateInstance (name, namespace, labels)</td>
 <td></td>
 <td></td>
 </tr>
@@ -4035,10 +4033,8 @@ template-operator service account is allowed to read within that namespace.</p>
 </table>
 <h4 id="helmspec">HelmSpec<a class="headerlink" href="#helmspec" title="Permanent link">#</a></h4>
 <p>HelmSpec defines a Helm chart source and rendering configuration.</p>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#templatespec">TemplateSpec</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#templatespec">TemplateSpec</a></p>
 <table>
 <thead>
 <tr>
@@ -4077,10 +4073,8 @@ template-operator service account is allowed to read within that namespace.</p>
 </table>
 <h4 id="helmchart">HelmChart<a class="headerlink" href="#helmchart" title="Permanent link">#</a></h4>
 <p>HelmChart identifies a Helm chart source.</p>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#helmspec">HelmSpec</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#helmspec">HelmSpec</a></p>
 <table>
 <thead>
 <tr>
@@ -4102,10 +4096,8 @@ template-operator service account is allowed to read within that namespace.</p>
 <h4 id="helmrepository">HelmRepository<a class="headerlink" href="#helmrepository" title="Permanent link">#</a></h4>
 <p>HelmRepository defines the location, chart identity, and optional authentication
 for a Helm chart repository or OCI registry.</p>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#helmchart">HelmChart</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#helmchart">HelmChart</a></p>
 <table>
 <thead>
 <tr>
@@ -4118,7 +4110,7 @@ for a Helm chart repository or OCI registry.</p>
 <tbody>
 <tr>
 <td><code>url</code> <em>string</em></td>
-<td>URL is the repository URL.<br>For HTTP/HTTPS repositories: <a href="https://charts.example.com">https://charts.example.com</a><br>For OCI registries: oci://ghcr.io/org/charts</td>
+<td>URL is the repository URL.<br>For HTTP/HTTPS repositories: https://charts.example.com<br>For OCI registries: oci://ghcr.io/org/charts</td>
 <td></td>
 <td>MinLength: 1 <br>Pattern: <code>^(https?\|oci)://</code> <br>Required: {} <br></td>
 </tr>
@@ -4130,7 +4122,7 @@ for a Helm chart repository or OCI registry.</p>
 </tr>
 <tr>
 <td><code>version</code> <em>string</em></td>
-<td>Version is the exact chart version to pull (SemVer 2, e.g. "1.2.3").<br>Must follow SemVer 2 (<a href="https://semver.org">https://semver.org</a>): MAJOR.MINOR.PATCH with<br>optional pre-release and build metadata.</td>
+<td>Version is the exact chart version to pull (SemVer 2, e.g. "1.2.3").<br>Must follow SemVer 2 (https://semver.org): MAJOR.MINOR.PATCH with<br>optional pre-release and build metadata.</td>
 <td></td>
 <td>MinLength: 5 <br>Pattern: <code>^v?(0\|[1-9][0-9]*)\.(0\|[1-9][0-9]*)\.(0\|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$</code> <br>Required: {} <br></td>
 </tr>
@@ -4144,10 +4136,8 @@ for a Helm chart repository or OCI registry.</p>
 </table>
 <h4 id="helmauth">HelmAuth<a class="headerlink" href="#helmauth" title="Permanent link">#</a></h4>
 <p>HelmAuth references a Secret containing repository credentials.</p>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#helmrepository">HelmRepository</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#helmrepository">HelmRepository</a></p>
 <table>
 <thead>
 <tr>
@@ -4168,10 +4158,8 @@ for a Helm chart repository or OCI registry.</p>
 </table>
 <h4 id="secretref">SecretRef<a class="headerlink" href="#secretref" title="Permanent link">#</a></h4>
 <p>SecretRef is a reference to a Secret by name.</p>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#helmauth">HelmAuth</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#helmauth">HelmAuth</a></p>
 <table>
 <thead>
 <tr>
@@ -4193,14 +4181,10 @@ for a Helm chart repository or OCI registry.</p>
 <h4 id="helmversion">HelmVersion<a class="headerlink" href="#helmversion" title="Permanent link">#</a></h4>
 <p><em>Underlying type:</em> <em>string</em></p>
 <p>HelmVersion specifies which Helm SDK to use for rendering.</p>
-<p><em>Validation:</em></p>
-<ul>
-<li>Enum: [v3 v4]</li>
-</ul>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#helmspec">HelmSpec</a></li>
-</ul>
+<p><em>Validation:</em>
+- Enum: [v3 v4]</p>
+<p><em>Appears in:</em>
+- <a href="#helmspec">HelmSpec</a></p>
 <table>
 <thead>
 <tr>
@@ -4221,10 +4205,8 @@ for a Helm chart repository or OCI registry.</p>
 </table>
 <h4 id="templateparameterdefinition">TemplateParameterDefinition<a class="headerlink" href="#templateparameterdefinition" title="Permanent link">#</a></h4>
 <p>TemplateParameterDefinition defines a single parameter for the template.</p>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#templatespec">TemplateSpec</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#templatespec">TemplateSpec</a></p>
 <table>
 <thead>
 <tr>
@@ -4276,14 +4258,10 @@ for a Helm chart repository or OCI registry.</p>
 <h4 id="parametertype">ParameterType<a class="headerlink" href="#parametertype" title="Permanent link">#</a></h4>
 <p><em>Underlying type:</em> <em>string</em></p>
 <p>ParameterType declares the expected type for validation.</p>
-<p><em>Validation:</em></p>
-<ul>
-<li>Enum: [string number bool]</li>
-</ul>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#templateparameterdefinition">TemplateParameterDefinition</a></li>
-</ul>
+<p><em>Validation:</em>
+- Enum: [string number bool]</p>
+<p><em>Appears in:</em>
+- <a href="#templateparameterdefinition">TemplateParameterDefinition</a></p>
 <table>
 <thead>
 <tr>
@@ -4308,10 +4286,8 @@ for a Helm chart repository or OCI registry.</p>
 </table>
 <h4 id="targetnamespaces">TargetNamespaces<a class="headerlink" href="#targetnamespaces" title="Permanent link">#</a></h4>
 <p>TargetNamespaces defines namespace restrictions for Template instantiation</p>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#templatespec">TemplateSpec</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#templatespec">TemplateSpec</a></p>
 <table>
 <thead>
 <tr>
@@ -4338,10 +4314,8 @@ for a Helm chart repository or OCI registry.</p>
 </table>
 <h4 id="syncconfig">SyncConfig<a class="headerlink" href="#syncconfig" title="Permanent link">#</a></h4>
 <p>SyncConfig controls drift protection for rendered resources.</p>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#templatespec">TemplateSpec</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#templatespec">TemplateSpec</a></p>
 <table>
 <thead>
 <tr>
@@ -4369,14 +4343,10 @@ for a Helm chart repository or OCI registry.</p>
 <h4 id="syncmode">SyncMode<a class="headerlink" href="#syncmode" title="Permanent link">#</a></h4>
 <p><em>Underlying type:</em> <em>string</em></p>
 <p>SyncMode controls the level of drift protection for rendered resources.</p>
-<p><em>Validation:</em></p>
-<ul>
-<li>Enum: [off revert strict]</li>
-</ul>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#syncconfig">SyncConfig</a></li>
-</ul>
+<p><em>Validation:</em>
+- Enum: [off revert strict]</p>
+<p><em>Appears in:</em>
+- <a href="#syncconfig">SyncConfig</a></p>
 <table>
 <thead>
 <tr>
@@ -4401,10 +4371,8 @@ for a Helm chart repository or OCI registry.</p>
 </table>
 <h4 id="templatestatus">TemplateStatus<a class="headerlink" href="#templatestatus" title="Permanent link">#</a></h4>
 <p>TemplateStatus defines the observed state of Template.</p>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#template">Template</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#template">Template</a></p>
 <table>
 <thead>
 <tr>
@@ -4438,14 +4406,10 @@ for a Helm chart repository or OCI registry.</p>
 <h4 id="templatephase">TemplatePhase<a class="headerlink" href="#templatephase" title="Permanent link">#</a></h4>
 <p><em>Underlying type:</em> <em>string</em></p>
 <p>TemplatePhase represents the validation state of a Template.</p>
-<p><em>Validation:</em></p>
-<ul>
-<li>Enum: [Valid Invalid Error]</li>
-</ul>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#templatestatus">TemplateStatus</a></li>
-</ul>
+<p><em>Validation:</em>
+- Enum: [Valid Invalid Error]</p>
+<p><em>Appears in:</em>
+- <a href="#templatestatus">TemplateStatus</a></p>
 <table>
 <thead>
 <tr>
@@ -4521,10 +4485,8 @@ When a KeyRef omits the namespace, it defaults to the TemplateInstance's namespa
 </table>
 <h4 id="templateinstancespec">TemplateInstanceSpec<a class="headerlink" href="#templateinstancespec" title="Permanent link">#</a></h4>
 <p>TemplateInstanceSpec defines the desired state of TemplateInstance.</p>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#templateinstance">TemplateInstance</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#templateinstance">TemplateInstance</a></p>
 <table>
 <thead>
 <tr>
@@ -4551,10 +4513,8 @@ When a KeyRef omits the namespace, it defaults to the TemplateInstance's namespa
 </table>
 <h4 id="templatereference">TemplateReference<a class="headerlink" href="#templatereference" title="Permanent link">#</a></h4>
 <p>TemplateReference defines the Template to instantiate</p>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#templateinstancespec">TemplateInstanceSpec</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#templateinstancespec">TemplateInstanceSpec</a></p>
 <table>
 <thead>
 <tr>
@@ -4581,10 +4541,8 @@ When a KeyRef omits the namespace, it defaults to the TemplateInstance's namespa
 </table>
 <h4 id="templateparameter">TemplateParameter<a class="headerlink" href="#templateparameter" title="Permanent link">#</a></h4>
 <p>TemplateParameter defines a single parameter for TemplateInstance overrides.</p>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#templateinstancespec">TemplateInstanceSpec</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#templateinstancespec">TemplateInstanceSpec</a></p>
 <table>
 <thead>
 <tr>
@@ -4624,16 +4582,12 @@ When a KeyRef omits the namespace, it defaults to the TemplateInstance's namespa
 <h4 id="valuefrom">ValueFrom<a class="headerlink" href="#valuefrom" title="Permanent link">#</a></h4>
 <p>ValueFrom specifies a dynamic source for a parameter value.</p>
 <p>Exactly one sub-field must be set.</p>
-<p><em>Validation:</em></p>
-<ul>
-<li>MaxProperties: 1</li>
-<li>MinProperties: 1</li>
-</ul>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#resolvedparameter">ResolvedParameter</a></li>
-<li><a href="#templateparameter">TemplateParameter</a></li>
-</ul>
+<p><em>Validation:</em>
+- MaxProperties: 1
+- MinProperties: 1</p>
+<p><em>Appears in:</em>
+- <a href="#resolvedparameter">ResolvedParameter</a>
+- <a href="#templateparameter">TemplateParameter</a></p>
 <table>
 <thead>
 <tr>
@@ -4666,10 +4620,8 @@ When a KeyRef omits the namespace, it defaults to the TemplateInstance's namespa
 </table>
 <h4 id="keyref">KeyRef<a class="headerlink" href="#keyref" title="Permanent link">#</a></h4>
 <p>KeyRef references a specific key in a Secret or ConfigMap.</p>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#valuefrom">ValueFrom</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#valuefrom">ValueFrom</a></p>
 <table>
 <thead>
 <tr>
@@ -4707,16 +4659,12 @@ When Name is set, the operator GETs that specific resource.
 When Name is omitted, the operator LISTs all resources of the given GVK
 and evaluates JSONPath over the list result.
 RBAC: requires get, list, and watch on the target resource.</p>
-<p>Namespace scoping:</p>
-<ul>
-<li>Set: operate in that namespace only</li>
-<li>Empty: for namespaced resources, operates across all namespaces;
-    for cluster-scoped resources (Nodes, PVs, etc.), ignored</li>
-</ul>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#valuefrom">ValueFrom</a></li>
-</ul>
+<p>Namespace scoping:
+  - Set: operate in that namespace only
+  - Empty: for namespaced resources, operates across all namespaces;
+    for cluster-scoped resources (Nodes, PVs, etc.), ignored</p>
+<p><em>Appears in:</em>
+- <a href="#valuefrom">ValueFrom</a></p>
 <table>
 <thead>
 <tr>
@@ -4761,10 +4709,8 @@ RBAC: requires get, list, and watch on the target resource.</p>
 </table>
 <h4 id="templateinstancestatus">TemplateInstanceStatus<a class="headerlink" href="#templateinstancestatus" title="Permanent link">#</a></h4>
 <p>TemplateInstanceStatus defines the observed state of TemplateInstance.</p>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#templateinstance">TemplateInstance</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#templateinstance">TemplateInstance</a></p>
 <table>
 <thead>
 <tr>
@@ -4821,14 +4767,10 @@ RBAC: requires get, list, and watch on the target resource.</p>
 </table>
 <h4 id="templateinstancephase">TemplateInstancePhase<a class="headerlink" href="#templateinstancephase" title="Permanent link">#</a></h4>
 <p><em>Underlying type:</em> <em>string</em></p>
-<p><em>Validation:</em></p>
-<ul>
-<li>Enum: [Ready Failed]</li>
-</ul>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#templateinstancestatus">TemplateInstanceStatus</a></li>
-</ul>
+<p><em>Validation:</em>
+- Enum: [Ready Failed]</p>
+<p><em>Appears in:</em>
+- <a href="#templateinstancestatus">TemplateInstanceStatus</a></p>
 <table>
 <thead>
 <tr>
@@ -4850,10 +4792,8 @@ RBAC: requires get, list, and watch on the target resource.</p>
 <h4 id="resolvedparameter">ResolvedParameter<a class="headerlink" href="#resolvedparameter" title="Permanent link">#</a></h4>
 <p>ResolvedParameter records the source and optionally the value used for a parameter
 after merging Template defaults and Instance overrides.</p>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#templateinstancestatus">TemplateInstanceStatus</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#templateinstancestatus">TemplateInstanceStatus</a></p>
 <table>
 <thead>
 <tr>
@@ -4885,10 +4825,8 @@ after merging Template defaults and Instance overrides.</p>
 </tbody>
 </table>
 <h4 id="resourcereference">ResourceReference<a class="headerlink" href="#resourcereference" title="Permanent link">#</a></h4>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#templateinstancestatus">TemplateInstanceStatus</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#templateinstancestatus">TemplateInstanceStatus</a></p>
 <table>
 <thead>
 <tr>
@@ -4940,14 +4878,10 @@ after merging Template defaults and Instance overrides.</p>
 <h4 id="resourcereferencestatus">ResourceReferenceStatus<a class="headerlink" href="#resourcereferencestatus" title="Permanent link">#</a></h4>
 <p><em>Underlying type:</em> <em>string</em></p>
 <p>ResourceReferenceStatus indicates the health of a rendered resource.</p>
-<p><em>Validation:</em></p>
-<ul>
-<li>Enum: [ Failed]</li>
-</ul>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#resourcereference">ResourceReference</a></li>
-</ul>
+<p><em>Validation:</em>
+- Enum: [ Failed]</p>
+<p><em>Appears in:</em>
+- <a href="#resourcereference">ResourceReference</a></p>
 <table>
 <thead>
 <tr>
@@ -4969,10 +4903,8 @@ after merging Template defaults and Instance overrides.</p>
 <h4 id="resolvedtemplateref">ResolvedTemplateRef<a class="headerlink" href="#resolvedtemplateref" title="Permanent link">#</a></h4>
 <p>ResolvedTemplateRef shows the exact Template used for rendering,
 including its namespace and generation.</p>
-<p><em>Appears in:</em></p>
-<ul>
-<li><a href="#templateinstancestatus">TemplateInstanceStatus</a></li>
-</ul>
+<p><em>Appears in:</em>
+- <a href="#templateinstancestatus">TemplateInstanceStatus</a></p>
 <table>
 <thead>
 <tr>

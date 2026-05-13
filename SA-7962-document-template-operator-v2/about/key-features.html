@@ -3197,7 +3197,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
   <span class="md-ellipsis">
     
   
-    API Reference
+    Api
   
 
     
@@ -3431,9 +3431,9 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <h3 id="go-template">Go template<a class="headerlink" href="#go-template" title="Permanent link">#</a></h3>
 <p><code>spec.gotemplate</code> is a string parsed with Go's <a href="https://pkg.go.dev/text/template"><code>text/template</code></a> plus <a href="https://masterminds.github.io/sprig/">Sprig functions</a>. The output may emit one or more Kubernetes manifests separated by YAML document markers. The following Sprig functions are removed for safety: <code>env</code>, <code>expandenv</code>, <code>getHostByName</code>.</p>
 <h3 id="helm">Helm<a class="headerlink" href="#helm" title="Permanent link">#</a></h3>
-<p><code>spec.helm</code> references a chart by repository URL, chart name, and SemVer 2 version:</p>
+<p><code>spec.helm</code> references a chart by repository URL, chart name, and <code>SemVer</code> 2 version:</p>
 <ul>
-<li>HTTP/HTTPS repositories: <code>url: https://charts.example.com</code></li>
+<li><code>HTTP</code>/<code>HTTPS</code> repositories: <code>url: https://charts.example.com</code></li>
 <li>OCI registries: <code>url: oci://ghcr.io/org/charts</code></li>
 </ul>
 <p>Both Helm v3 and v4 SDKs are bundled. Pick with <code>spec.helm.version: v3</code> or <code>v4</code>. When omitted, <code>v4</code> is the default. Optional <code>spec.helm.valuesTemplate</code> is itself a Go template that, after rendering, is parsed as YAML and merged over the chart's default values.</p>

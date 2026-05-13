@@ -3158,7 +3158,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
   <span class="md-ellipsis">
     
   
-    API Reference
+    Api
   
 
     
@@ -3348,7 +3348,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 
 
 <h1 id="deploying-private-helm-charts">Deploying Private Helm Charts<a class="headerlink" href="#deploying-private-helm-charts" title="Permanent link">#</a></h1>
-<p>A <code>Template</code> can pull from a private Helm repository, either an HTTP/HTTPS repo with basic auth, or an OCI registry with basic auth or a Docker config.</p>
+<p>A <code>Template</code> can pull from a private Helm repository, either an <code>HTTP</code>/<code>HTTPS</code> repo with basic auth, or an OCI registry with basic auth or a Docker config.</p>
 <p>Authentication is configured by referencing a <code>Secret</code> from <code>spec.helm.chart.repository.auth.secretRef</code>. The <code>Secret</code> <strong>must live in the same namespace as the <code>Template</code></strong> (the provider namespace), not the consumer namespace.</p>
 <h2 id="supported-credential-layouts">Supported credential layouts<a class="headerlink" href="#supported-credential-layouts" title="Permanent link">#</a></h2>
 <p>The operator reads the following keys from the referenced <code>Secret</code>:</p>
@@ -3362,14 +3362,14 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </thead>
 <tbody>
 <tr>
-<td>HTTP(S) repository</td>
+<td><code>HTTP</code>(S) repository</td>
 <td><code>username</code>, <code>password</code></td>
-<td>Sent as HTTP Basic auth on chart pull.</td>
+<td>Sent as <code>HTTP</code> Basic auth on chart pull.</td>
 </tr>
 <tr>
 <td>OCI registry</td>
 <td><code>username</code>, <code>password</code></td>
-<td>Sent as HTTP Basic auth to the registry.</td>
+<td>Sent as <code>HTTP</code> Basic auth to the registry.</td>
 </tr>
 <tr>
 <td>OCI registry</td>
@@ -3381,9 +3381,9 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <p>If both <code>username</code>/<code>password</code> and <code>.dockerconfigjson</code> are present in the same secret, <code>username</code>/<code>password</code> win.</p>
 <div class="admonition note">
 <p class="admonition-title">Token-based authentication</p>
-<p>For registries that authenticate with a personal access token, robot token, or API key (GitHub Container Registry, GitLab, Harbor, JFrog Artifactory, and similar), place the token in the <code>password</code> field of the Secret. Set <code>username</code> to whatever value the registry expects, typically your account name or a registry-specific placeholder such as <code>token</code> or <code>oauth2</code>. The operator passes both fields to Helm as HTTP Basic auth; the registry decides how to interpret them.</p>
+<p>For registries that authenticate with a personal access token, robot token, or API key (GitHub Container Registry, GitLab, Harbor, and similar), place the token in the <code>password</code> field of the Secret. Set <code>username</code> to whatever value the registry expects, typically your account name or a registry-specific placeholder such as <code>token</code> or <code>oauth2</code>. The operator passes both fields to Helm as <code>HTTP</code> Basic auth; the registry decides how to interpret them.</p>
 </div>
-<h2 id="private-https-repository">Private HTTPS repository<a class="headerlink" href="#private-https-repository" title="Permanent link">#</a></h2>
+<h2 id="private-https-repository">Private <code>HTTPS</code> repository<a class="headerlink" href="#private-https-repository" title="Permanent link">#</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
 <span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Secret</span>
 <span class="nt">metadata</span><span class="p">:</span>

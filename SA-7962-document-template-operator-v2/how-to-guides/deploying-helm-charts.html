@@ -3158,7 +3158,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
   <span class="md-ellipsis">
     
   
-    API Reference
+    Api
   
 
     
@@ -3349,7 +3349,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 
 <h1 id="deploying-helm-charts">Deploying Helm Charts<a class="headerlink" href="#deploying-helm-charts" title="Permanent link">#</a></h1>
 <p>Examples of using a Helm chart as a <code>Template</code>'s body. For the chart-source rules, Helm SDK selection, <code>valuesTemplate</code>, release-name semantics, and validation behavior, see <a href="../concepts/helm.html">Helm</a>. For private repositories, see <a href="deploying-private-helm-charts.html">Deploying private Helm charts</a>.</p>
-<h2 id="scenario-1-public-https-repository">Scenario 1: public HTTPS repository<a class="headerlink" href="#scenario-1-public-https-repository" title="Permanent link">#</a></h2>
+<h2 id="scenario-1-public-https-repository">Scenario 1: public <code>HTTPS</code> repository<a class="headerlink" href="#scenario-1-public-https-repository" title="Permanent link">#</a></h2>
 <p>Bill publishes the upstream <code>nginx</code> chart from Bitnami, parameterized so each consumer can pick a replica count.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">templates.v2.stakater.com/v2alpha1</span>
 <span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Template</span>
@@ -3392,7 +3392,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">"3"</span>
 </code></pre></div>
 <h2 id="scenario-2-oci-registry">Scenario 2: OCI registry<a class="headerlink" href="#scenario-2-oci-registry" title="Permanent link">#</a></h2>
-<p>OCI-hosted charts use the <code>oci://</code> scheme. Everything else is identical to the HTTPS case:</p>
+<p>OCI-hosted charts use the <code>oci://</code> scheme. Everything else is identical to the <code>HTTPS</code> case:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">spec</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">helm</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">chart</span><span class="p">:</span>
@@ -3432,7 +3432,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <h2 id="repository-url-rules">Repository URL rules<a class="headerlink" href="#repository-url-rules" title="Permanent link">#</a></h2>
 <ul>
 <li><code>spec.helm.chart.repository.url</code> must match the pattern <code>^(https?|oci)://</code>.</li>
-<li><code>version</code> must follow <a href="https://semver.org">SemVer 2</a>, e.g. <code>1.2.3</code>, <code>v1.2.3</code>, <code>1.2.3-rc.1+meta</code>. Ranges, <code>latest</code>, and floating versions are rejected at admission time.</li>
+<li><code>version</code> must follow <a href="https://semver.org"><code>SemVer</code> 2</a>, e.g. <code>1.2.3</code>, <code>v1.2.3</code>, <code>1.2.3-rc.1+meta</code>. Ranges, <code>latest</code>, and floating versions are rejected at admission time.</li>
 </ul>
 <h2 id="status-on-failure">Status on failure<a class="headerlink" href="#status-on-failure" title="Permanent link">#</a></h2>
 <p>If the chart cannot be pulled, the <code>Template</code> reports:</p>

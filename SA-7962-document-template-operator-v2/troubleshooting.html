@@ -3041,7 +3041,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
   <span class="md-ellipsis">
     
   
-    API Reference
+    Api
   
 
     
@@ -3952,7 +3952,7 @@ kubectl<span class="w"> </span>get<span class="w"> </span>&lt;kind&gt;<span clas
 <p><strong>Resolution</strong>: check each of these in turn:</p>
 <ul>
 <li><code>spec.helm.chart.repository.url</code> matches <code>^(https?|oci)://</code>.</li>
-<li><code>spec.helm.chart.repository.version</code> follows SemVer 2 (<code>MAJOR.MINOR.PATCH</code>). Ranges and <code>latest</code> are rejected.</li>
+<li><code>spec.helm.chart.repository.version</code> follows <code>SemVer</code> 2 (<code>MAJOR.MINOR.PATCH</code>). Ranges and <code>latest</code> are rejected.</li>
 <li>For private repositories, <code>auth.secretRef</code> is set and the <code>Secret</code> lives in the same namespace as the <code>Template</code>.</li>
 <li>The auth <code>Secret</code> carries the right keys: <code>username</code> + <code>password</code> (for basic auth and token-based registries, where the token goes in <code>password</code>), or <code>.dockerconfigjson</code> (for OCI registries with a docker config).</li>
 </ul>
