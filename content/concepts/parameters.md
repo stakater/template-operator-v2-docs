@@ -16,8 +16,8 @@ A parameter name in the instance must match a name declared on the `Template`. U
 For each parameter declared on the `Template`:
 
 1. If the `TemplateInstance` overrides it, the override is resolved (literal or `valueFrom`).
-2. Otherwise the `Template`'s `value` default is used.
-3. If neither exists, resolution fails: `ParametersValid=False, Reason=ParameterResolutionFailed`.
+1. Otherwise the `Template`'s `value` default is used.
+1. If neither exists, resolution fails: `ParametersValid=False, Reason=ParameterResolutionFailed`.
 
 Resolution is **fail-fast**: if any single parameter can't be resolved, the entire `TemplateInstance` does not render. Rendering with missing parameter values would produce non-deterministic manifests that are rarely safe to apply.
 
@@ -74,8 +74,8 @@ By default `status.resolvedParameters[]` only records the *source* of each param
 A `TemplateParameter` on the `TemplateInstance` has three shapes:
 
 1. **Literal**: `value: "..."`.
-2. **Dynamic**: `valueFrom: { ... }` reading from a cluster resource.
-3. **Dynamic with fallback**: `valueFrom: { ... }` plus `defaultValue: "..."`.
+1. **Dynamic**: `valueFrom: { ... }` reading from a cluster resource.
+1. **Dynamic with fallback**: `valueFrom: { ... }` plus `defaultValue: "..."`.
 
 ### Validation rules
 

@@ -9,9 +9,9 @@ For the full catalogue of conditions and what each one means, see [Status](./con
 When something isn't working:
 
 1. **Read `status.phase`** with `kubectl get`. `Valid`/`Ready` means the operator is happy. `Invalid`, `Error`, or `Failed` means there's something to fix.
-2. **Read `status.conditions[]`** with `kubectl describe` or `kubectl get -o yaml`. Find the first condition with `status: False`. Its `reason` field is the key to the entry below.
-3. **Look up that reason** in the section for your CR (`Template` or `TemplateInstance`).
-4. **If nothing matches**, drop to [Operational](#operational) for issues that don't show up in `status`, or check the controller logs.
+1. **Read `status.conditions[]`** with `kubectl describe` or `kubectl get -o yaml`. Find the first condition with `status: False`. Its `reason` field is the key to the entry below.
+1. **Look up that reason** in the section for your CR (`Template` or `TemplateInstance`).
+1. **If nothing matches**, drop to [Operational](#operational) for issues that don't show up in `status`, or check the controller logs.
 
 ## Gathering information
 

@@ -100,9 +100,9 @@ The operator runs Helm in client-side dry-run mode (equivalent of `helm template
 When a `Template` with `spec.helm` is created or updated:
 
 1. If `valuesTemplate` is set, it's rendered with dummy parameters. Failure → `Valid=False`.
-2. The chart is pulled. Failure → `SourceAccessible=False, Reason=RepositoryUnreachable`. The reconcile requeues after 60 s so transient registry outages self-heal.
-3. The chart is rendered with the dummy values. Failure → `DryRunRendered=False, Reason=RenderFailed`.
-4. The rendered manifest YAML is validated. Failure → `Valid=False, Reason=ValidationFailed`.
+1. The chart is pulled. Failure → `SourceAccessible=False, Reason=RepositoryUnreachable`. The reconcile requeues after 60 s so transient registry outages self-heal.
+1. The chart is rendered with the dummy values. Failure → `DryRunRendered=False, Reason=RenderFailed`.
+1. The rendered manifest YAML is validated. Failure → `Valid=False, Reason=ValidationFailed`.
 
 ## See also
 

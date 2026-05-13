@@ -65,8 +65,8 @@ This is what makes `metadata.namespace` optional in most gotemplate bodies: the 
 When you create or update a `Template`, the controller:
 
 1. Parses `spec.gotemplate`. Parse failure surfaces as `Valid=False, Reason=ValidationFailed`.
-2. If every parameter has a literal `value` default, dry-run renders the template with those defaults and validates that the output is valid YAML. Render failure surfaces as `DryRunRendered=False, Reason=RenderFailed`.
-3. If at least one parameter has no literal default, dry-run is skipped: `DryRunRendered=False, Reason=DryRunSkipped`. The `Template` is still considered `Valid` overall; the first end-to-end check happens when the first `TemplateInstance` references it.
+1. If every parameter has a literal `value` default, dry-run renders the template with those defaults and validates that the output is valid YAML. Render failure surfaces as `DryRunRendered=False, Reason=RenderFailed`.
+1. If at least one parameter has no literal default, dry-run is skipped: `DryRunRendered=False, Reason=DryRunSkipped`. The `Template` is still considered `Valid` overall; the first end-to-end check happens when the first `TemplateInstance` references it.
 
 Dry-run is skipped rather than guessed at, since the operator has no way to know whether a missing-default parameter will resolve to a string, number, or list at runtime. A guess that doesn't match the runtime type would fail the dry-run on a `Template` that actually works in practice.
 

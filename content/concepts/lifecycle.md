@@ -48,8 +48,8 @@ The operator uses server-side apply as the field manager `template-operator` and
 When a `Template`'s render output shrinks or its resource names change, resources that were rendered last time but not this time become orphans. On every reconcile, the operator:
 
 1. Validates the new render with a server-side dry run. If validation fails, the previous `status.renderedResources` is preserved unchanged and the reconcile is retried later, so nothing is lost mid-update.
-2. Applies the new resources.
-3. After a fully successful apply, discovers the set of resources it owns via the ownership labels (across every GVK in `status.trackedGVKs`), computes the difference against the new render, and deletes the orphans.
+1. Applies the new resources.
+1. After a fully successful apply, discovers the set of resources it owns via the ownership labels (across every GVK in `status.trackedGVKs`), computes the difference against the new render, and deletes the orphans.
 
 Failed deletes are retained in `status.renderedResources` with `status: Failed` and retried on the next reconcile. See [Orphan resource handling](../how-to-guides/orphan-resource-handling.md) for the full failure-mode catalog.
 

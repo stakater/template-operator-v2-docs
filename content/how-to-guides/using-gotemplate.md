@@ -100,8 +100,8 @@ spec:
 When the `Template` is created or updated, the controller:
 
 1. Parses the template string. A parse error sets `Valid=False, Reason=ValidationFailed`.
-2. If every parameter has a literal `value`, the controller dry-run renders the template with those values and validates the YAML output. Any rendering or YAML validation error sets `DryRunRendered=False, Reason=RenderFailed`.
-3. If even one parameter is dynamic (no literal `value`), the dry-run is skipped and the controller sets `DryRunRendered=False, Reason=DryRunSkipped`. The `Template` is still considered `Valid` overall.
+1. If every parameter has a literal `value`, the controller dry-run renders the template with those values and validates the YAML output. Any rendering or YAML validation error sets `DryRunRendered=False, Reason=RenderFailed`.
+1. If even one parameter is dynamic (no literal `value`), the dry-run is skipped and the controller sets `DryRunRendered=False, Reason=DryRunSkipped`. The `Template` is still considered `Valid` overall.
 
 This means a `Template` with parameters that are resolved at the `TemplateInstance` level will not be dry-run rendered at template-creation time. The first end-to-end validation happens when the first `TemplateInstance` is created.
 

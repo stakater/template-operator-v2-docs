@@ -45,7 +45,7 @@ There are at least two options to get fast continuous feedback during local deve
 Build Dockerfile test image:
 
 ```bash
-docker build . -t test -f Dockerfilelocal
+docker build . -t test -f DockerfileLocal
 ```
 
 Run test container:
@@ -102,3 +102,20 @@ brew install vale
 vale sync
 vale content
 ```
+
+## Regenerating the API reference
+
+`content/reference/api.md` is generated from the [`template-operator-v2`](https://github.com/stakater-ab/template-operator-v2) Go source via [`crd-ref-docs`](https://github.com/elastic/crd-ref-docs). Regenerate it whenever the operator's API surface changes:
+
+```bash
+make api-reference
+```
+
+By default this checks out the operator's `main` branch. Override with:
+
+```bash
+make api-reference OPERATOR_REF=v0.1.0   # pin to a tag once released
+make api-reference OPERATOR_REF=<branch>  # generate against a feature branch
+```
+
+Configuration lives in [`crd-ref-docs.yaml`](./crd-ref-docs.yaml). Make sure to run `make api-reference` and commit the result whenever the operator's `api/v2alpha1` package changes.

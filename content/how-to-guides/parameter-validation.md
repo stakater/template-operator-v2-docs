@@ -13,9 +13,9 @@
 
 CRD-level validation rejects the conflicting combination:
 
-```
+```yaml
 required: true, disableOverride: true   # error: cannot be both required and non-overridable
-```
+```yaml
 
 ## Example: a fully-described template parameter set
 
@@ -47,7 +47,7 @@ spec:
       disableOverride: true     # consumers cannot change the registry
   gotemplate: |
     ...
-```
+```yaml
 
 ## Type checking
 
@@ -68,7 +68,7 @@ status:
       status: "False"
       reason: InvalidParameter
       message: "parameter \"replicas\" type mismatch: expected number, got \"two\""
-```
+```yaml
 
 ## Required parameters
 
@@ -93,7 +93,7 @@ status:
       status: "False"
       reason: OverrideNotAllowed
       message: "parameter \"imageRegistry\" cannot be overridden by this instance"
-```
+```yaml
 
 **Usage**: for values the platform team owns, such as image registries, mandatory labels, or security-relevant settings.
 
@@ -113,7 +113,7 @@ status:
         secretKeyRef:
           name: db-credentials
           key: password
-```
+```yaml
 
 Treat `exposeInStatus` as a public-information signal. Never set it on parameters resolved from `Secret`.
 
@@ -131,6 +131,6 @@ Treat `exposeInStatus` as a public-information signal. Never set it on parameter
 The fields are all optional with safe defaults. Adopt them incrementally:
 
 1. Annotate each parameter with `type` first; this gives you compile-time-style validation with no behavior change.
-2. Mark consumer-required values with `required: true`.
-3. Mark provider-owned values with `disableOverride: true`.
-4. Mark non-secret, audit-worthy values with `exposeInStatus: true`.
+1. Mark consumer-required values with `required: true`.
+1. Mark provider-owned values with `disableOverride: true`.
+1. Mark non-secret, audit-worthy values with `exposeInStatus: true`.

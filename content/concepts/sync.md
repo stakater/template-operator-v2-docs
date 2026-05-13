@@ -32,9 +32,9 @@ Original behavior. Resources are applied on `TemplateInstance` create/update and
 The controller, on every reconcile of the `TemplateInstance`, re-applies the rendered output to every owned resource:
 
 1. Fetch the live object.
-2. Run a server-side dry-run apply on a copy of the desired object to fill in API-server defaults.
-3. Compare the dry-run result with the live object, ignoring `ignoreFields`.
-4. If they differ, apply the desired object, overwriting the drift.
+1. Run a server-side dry-run apply on a copy of the desired object to fill in API-server defaults.
+1. Compare the dry-run result with the live object, ignoring `ignoreFields`.
+1. If they differ, apply the desired object, overwriting the drift.
 
 External edits are accepted by the API server and then brought back in line with the rendered output on the next reconcile. The webhook is not involved in this mode, so the edit is not blocked at admission time, the convergence happens during the controller's normal reconcile loop.
 

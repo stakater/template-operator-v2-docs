@@ -11,8 +11,8 @@ When `targetNamespaces` is omitted entirely, only the `Template`'s own namespace
 A `TemplateInstance`'s consumer namespace is permitted if **any** of these match:
 
 1. The explicit allow-list contains the namespace name.
-2. The explicit allow-list is the wildcard `["*"]`.
-3. The label selector matches the consumer namespace's labels.
+1. The explicit allow-list is the wildcard `["*"]`.
+1. The label selector matches the consumer namespace's labels.
 
 You can use either strategy, or both. They combine with OR semantics.
 

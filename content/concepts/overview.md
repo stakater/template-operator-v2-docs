@@ -8,7 +8,7 @@ A `Template` is the **provider's** artifact. It lives in a provider namespace, c
 
 A `TemplateInstance` is the **consumer's** artifact. It lives in a consumer namespace, references a `Template` by name and namespace, and supplies parameter values. Creating a `TemplateInstance` is the action that causes the operator to render the template body and apply the resulting Kubernetes resources.
 
-```
+```text
               provider namespace                    consumer namespace
        ┌───────────────────────────────┐    ┌───────────────────────────────┐
        │ Template "foo-template"       │◄───│ TemplateInstance "my-app"     │
