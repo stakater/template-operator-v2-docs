@@ -1,0 +1,46 @@
+site_name: Template Operator v2
+docs_dir: content
+site_url: https://docs.stakater.com/template-operator-v2-docs/
+repo_url: https://github.com/stakater/template-operator-v2-docs
+edit_uri: blob/main/content/
+theme:
+  favicon: assets/images/favicon.svg
+
+strict: true
+validation:
+  links:
+    anchors: warn
+
+extra:
+  version:
+    provider: mike
+    default: latest
+
+nav:
+  - index.md
+  - About:
+      - about/key-features.md
+      - about/benefits.md
+  - Architecture:
+      - architecture/concepts.md
+      - architecture/architecture.md
+      - architecture/logs-metrics.md
+  - Installation:
+      - installation/overview.md
+      - installation/openshift.md
+      - installation/kubernetes.md
+  - Kubernetes Resources:
+      - kubernetes-resources/template.md
+      - kubernetes-resources/template-instance.md
+  - How-to Guides:
+      - kubernetes-resources/how-to-guides/deploying-templates.md
+      - kubernetes-resources/how-to-guides/using-gotemplate.md
+      - kubernetes-resources/how-to-guides/deploying-helm-charts.md
+      - kubernetes-resources/how-to-guides/deploying-private-helm-charts.md
+      - kubernetes-resources/how-to-guides/parameters-and-overrides.md
+      - kubernetes-resources/how-to-guides/target-namespaces.md
+      - kubernetes-resources/how-to-guides/parameter-validation.md
+      - kubernetes-resources/how-to-guides/drift-protection.md
+      - kubernetes-resources/how-to-guides/orphan-resource-handling.md
+  - troubleshooting.md
+  - changelog.md
