@@ -2,6 +2,8 @@
   {
     "version": "SA-7962-document-template-operator-v2",
     "title": "SA-7962-document-template-operator-v2",
-    "aliases": []
+    "aliases": [
+      "latest"
+    ]
   }
 ]
