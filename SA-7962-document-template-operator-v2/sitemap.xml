@@ -2,114 +2,118 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/index.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/changelog.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/troubleshooting.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/about/benefits.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/about/key-features.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/architecture/architecture.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/architecture/logs-metrics.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/concepts/gotemplate.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/concepts/helm.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/concepts/lifecycle.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/concepts/overview.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/concepts/parameters.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
+    </url>
+    <url>
+         <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/concepts/security.html</loc>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/concepts/status.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/concepts/sync.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/concepts/target-namespaces.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/deploying-helm-charts.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/deploying-private-helm-charts.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/deploying-templates.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/drift-protection.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/orphan-resource-handling.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/parameter-validation.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/parameters-and-overrides.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/target-namespaces.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/using-gotemplate.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/installation/kubernetes.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/installation/openshift.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/installation/overview.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/reference/api.html</loc>
-         <lastmod>2026-05-13</lastmod>
+         <lastmod>2026-05-14</lastmod>
     </url>
 </urlset>

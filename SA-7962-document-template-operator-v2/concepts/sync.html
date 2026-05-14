@@ -2494,6 +2494,45 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </li>
       
         <li class="md-nav__item">
+  <a href="#webhook-edge-cases-strict-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Webhook edge cases (strict mode)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Webhook edge cases (strict mode)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#owning-template-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Owning Template not found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#owning-templateinstance-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Owning TemplateInstance not found
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#disabling-sync" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2567,6 +2606,34 @@ This documentation is for a pull request deployment and is unreleased, it is onl
     
   
     Lifecycle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="security.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security model
   
 
     
@@ -3394,6 +3461,45 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </li>
       
         <li class="md-nav__item">
+  <a href="#webhook-edge-cases-strict-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Webhook edge cases (strict mode)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Webhook edge cases (strict mode)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#owning-template-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Owning Template not found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#owning-templateinstance-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Owning TemplateInstance not found
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#disabling-sync" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3555,6 +3661,13 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <li>A <code>ValidatingWebhookConfiguration</code> patched with the cert-manager CA bundle.</li>
 </ul>
 <p>cert-manager must be installed on the cluster before you set any <code>Template.spec.sync.mode: strict</code>.</p>
+<h2 id="webhook-edge-cases-strict-mode">Webhook edge cases (strict mode)<a class="headerlink" href="#webhook-edge-cases-strict-mode" title="Permanent link">#</a></h2>
+<p>The validating webhook has two paths where it intentionally <strong>allows</strong> a request that you might expect it to reject. Both are unreachable through normal operation, but understanding them matters for the <a href="security.html">security model</a>.</p>
+<h3 id="owning-template-not-found">Owning Template not found<a class="headerlink" href="#owning-template-not-found" title="Permanent link">#</a></h3>
+<p>If the webhook fires on a managed resource and finds the owning <code>TemplateInstance</code>, but the referenced <code>Template</code> is gone, the webhook allows the request. The sync mode cannot be determined without the <code>Template</code>, and denying would permanently lock the resource. This state is only reachable if the <code>Template</code>'s finalizer has been manually removed.</p>
+<h3 id="owning-templateinstance-not-found">Owning TemplateInstance not found<a class="headerlink" href="#owning-templateinstance-not-found" title="Permanent link">#</a></h3>
+<p>If the <code>templates.v2.stakater.com/instance-ref</code> annotation on a managed resource points at a <code>TemplateInstance</code> that no longer exists, the webhook allows the request. No owner means no enforcement is possible. Same root cause as above: a finalizer was bypassed manually, or the resource was created with an <code>instance-ref</code> pointing at a not-yet-existing <code>TemplateInstance</code> (the supported <a href="lifecycle.html#opt-in-pre-stamp-the-instance-ref-annotation">adoption path</a>).</p>
+<p>In both cases, the controller's normal reconcile path will still surface the issue via the affected <code>TemplateInstance</code>'s status.</p>
 <h2 id="disabling-sync">Disabling sync<a class="headerlink" href="#disabling-sync" title="Permanent link">#</a></h2>
 <p>Setting <code>spec.sync.mode: off</code> (or removing <code>spec.sync</code> entirely) on the <code>Template</code> releases the operator's drift watches on every dependent <code>TemplateInstance</code>'s rendered resources at the next reconcile.</p>
 <h2 id="see-also">See also<a class="headerlink" href="#see-also" title="Permanent link">#</a></h2>

@@ -11,7 +11,7 @@
         <link rel="prev" href="status.html">
       
       
-        <link rel="next" href="../architecture/architecture.html">
+        <link rel="next" href="security.html">
       
       
         
@@ -2517,6 +2517,45 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </li>
       
         <li class="md-nav__item">
+  <a href="#resource-adoption" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resource adoption
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Resource adoption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#opt-in-pre-stamp-the-instance-ref-annotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Opt-in: pre-stamp the instance-ref annotation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#implicit-name-collision-during-apply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implicit: name collision during apply
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#templateinstance-deletion" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2553,6 +2592,34 @@ This documentation is for a pull request deployment and is unreleased, it is onl
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="security.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -3339,6 +3406,45 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </li>
       
         <li class="md-nav__item">
+  <a href="#resource-adoption" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resource adoption
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Resource adoption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#opt-in-pre-stamp-the-instance-ref-annotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Opt-in: pre-stamp the instance-ref annotation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#implicit-name-collision-during-apply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implicit: name collision during apply
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#templateinstance-deletion" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3466,6 +3572,31 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <li>After a fully successful apply, discovers the set of resources it owns via the ownership labels (across every GVK in <code>status.trackedGVKs</code>), computes the difference against the new render, and deletes the orphans.</li>
 </ol>
 <p>Failed deletes are retained in <code>status.renderedResources</code> with <code>status: Failed</code> and retried on the next reconcile. See <a href="../how-to-guides/orphan-resource-handling.html">Orphan resource handling</a> for the full failure-mode catalog.</p>
+<h2 id="resource-adoption">Resource adoption<a class="headerlink" href="#resource-adoption" title="Permanent link">#</a></h2>
+<p>A rendered resource is considered "owned" if it carries the operator's ownership labels and the <code>templates.v2.stakater.com/template-instance-resource</code> finalizer. Adoption is the process of taking an existing in-cluster resource and giving it those marks, so that the operator manages it from that point on.</p>
+<p>There are two paths into adoption.</p>
+<h3 id="opt-in-pre-stamp-the-instance-ref-annotation">Opt-in: pre-stamp the <code>instance-ref</code> annotation<a class="headerlink" href="#opt-in-pre-stamp-the-instance-ref-annotation" title="Permanent link">#</a></h3>
+<p>Before the <code>TemplateInstance</code> exists, an admin can create a resource manually and annotate it with <code>templates.v2.stakater.com/instance-ref: &lt;namespace&gt;/&lt;name&gt;</code> pointing at the <code>TemplateInstance</code> they intend to create later. The drift webhook intercepts UPDATE and DELETE only, so the resource is admitted at CREATE time. When the named <code>TemplateInstance</code> is eventually created and its render targets the same <code>apiVersion</code>/<code>kind</code>/<code>name</code>/<code>namespace</code>, the operator picks the resource up and treats it as one of its rendered outputs.</p>
+<p>This is the supported migration path for moving an existing in-cluster resource under operator management without deleting and re-creating it.</p>
+<h3 id="implicit-name-collision-during-apply">Implicit: name collision during apply<a class="headerlink" href="#implicit-name-collision-during-apply" title="Permanent link">#</a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Name collisions silently take over existing resources</p>
+<p>The operator applies rendered resources with server-side apply and <code>ForceOwnership=true</code>. If a <code>Template</code> renders a resource whose <code>apiVersion</code>/<code>kind</code>/<code>namespace</code>/<code>name</code> matches an existing in-cluster resource, even one the operator did not create, the existing resource is silently adopted in place.</p>
+</div>
+<p>What "adopted in place" means:</p>
+<ul>
+<li>The resource's UID and <code>creationTimestamp</code> are preserved (it is mutated, not recreated).</li>
+<li>The operator stamps it with the ownership labels, the <code>instance-ref</code> annotation, and the rendered-resource finalizer.</li>
+<li>Fields written by the template are taken over from whatever field manager owned them previously.</li>
+<li>Deleting the <code>TemplateInstance</code> will cascade-delete the adopted resource, even though the operator never created it.</li>
+</ul>
+<p>Mitigation:</p>
+<ul>
+<li>Treat the rendered name set as a global namespace within each target namespace. A typo or a Template that reuses a common name (<code>config</code>, <code>app</code>, <code>tls</code>) can silently capture an unrelated resource.</li>
+<li>Use a naming convention that includes the <code>TemplateInstance</code> name (for example <code>{{ .instance.name }}-config</code>) so collisions are accidental rather than routine.</li>
+<li>Before applying a new <code>Template</code>, verify no resources of the same <code>apiVersion</code>/<code>kind</code>/<code>name</code>/<code>namespace</code> already exist in the consumer namespace.</li>
+</ul>
+<p>See also <a href="security.html">Security model</a> for the broader trust boundaries.</p>
 <h2 id="templateinstance-deletion">TemplateInstance deletion<a class="headerlink" href="#templateinstance-deletion" title="Permanent link">#</a></h2>
 <p>When a <code>TemplateInstance</code> enters terminating state, the operator discovers every resource it owns via the ownership labels, deletes each, and then removes its own finalizer. The label-based discovery makes deletion safe even if <code>status.renderedResources</code> is empty or stale.</p>
 <h2 id="inspecting-failed-cleanups">Inspecting failed cleanups<a class="headerlink" href="#inspecting-failed-cleanups" title="Permanent link">#</a></h2>
