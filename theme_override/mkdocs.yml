@@ -30,6 +30,7 @@ nav:
       - concepts/sync.md
       - concepts/status.md
       - concepts/lifecycle.md
+      - concepts/security.md
   - Architecture:
       - architecture/architecture.md
       - architecture/logs-metrics.md

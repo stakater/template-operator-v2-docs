@@ -114,6 +114,20 @@ The webhook server needs TLS. The chart provisions:
 
 cert-manager must be installed on the cluster before you set any `Template.spec.sync.mode: strict`.
 
+## Webhook edge cases (strict mode)
+
+The validating webhook has two paths where it intentionally **allows** a request that you might expect it to reject. Both are unreachable through normal operation, but understanding them matters for the [security model](./security.md).
+
+### Owning Template not found
+
+If the webhook fires on a managed resource and finds the owning `TemplateInstance`, but the referenced `Template` is gone, the webhook allows the request. The sync mode cannot be determined without the `Template`, and denying would permanently lock the resource. This state is only reachable if the `Template`'s finalizer has been manually removed.
+
+### Owning TemplateInstance not found
+
+If the `templates.v2.stakater.com/instance-ref` annotation on a managed resource points at a `TemplateInstance` that no longer exists, the webhook allows the request. No owner means no enforcement is possible. Same root cause as above: a finalizer was bypassed manually, or the resource was created with an `instance-ref` pointing at a not-yet-existing `TemplateInstance` (the supported [adoption path](./lifecycle.md#opt-in-pre-stamp-the-instance-ref-annotation)).
+
+In both cases, the controller's normal reconcile path will still surface the issue via the affected `TemplateInstance`'s status.
+
 ## Disabling sync
 
 Setting `spec.sync.mode: off` (or removing `spec.sync` entirely) on the `Template` releases the operator's drift watches on every dependent `TemplateInstance`'s rendered resources at the next reconcile.

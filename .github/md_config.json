@@ -2,6 +2,12 @@
   "ignorePatterns": [
     {
       "pattern": "^(?!http).+"
+    },
+    {
+      "pattern": "^https?://github\\.com/stakater-ab(/|$)"
+    },
+    {
+      "pattern": "^https?://([a-z0-9-]+\\.)?example\\.(com|org|net)(/|$)"
     }
   ]
 }

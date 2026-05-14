@@ -53,6 +53,38 @@ When a `Template`'s render output shrinks or its resource names change, resource
 
 Failed deletes are retained in `status.renderedResources` with `status: Failed` and retried on the next reconcile. See [Orphan resource handling](../how-to-guides/orphan-resource-handling.md) for the full failure-mode catalog.
 
+## Resource adoption
+
+A rendered resource is considered "owned" if it carries the operator's ownership labels and the `templates.v2.stakater.com/template-instance-resource` finalizer. Adoption is the process of taking an existing in-cluster resource and giving it those marks, so that the operator manages it from that point on.
+
+There are two paths into adoption.
+
+### Opt-in: pre-stamp the `instance-ref` annotation
+
+Before the `TemplateInstance` exists, an admin can create a resource manually and annotate it with `templates.v2.stakater.com/instance-ref: <namespace>/<name>` pointing at the `TemplateInstance` they intend to create later. The drift webhook intercepts UPDATE and DELETE only, so the resource is admitted at CREATE time. When the named `TemplateInstance` is eventually created and its render targets the same `apiVersion`/`kind`/`name`/`namespace`, the operator picks the resource up and treats it as one of its rendered outputs.
+
+This is the supported migration path for moving an existing in-cluster resource under operator management without deleting and re-creating it.
+
+### Implicit: name collision during apply
+
+!!! warning "Name collisions silently take over existing resources"
+    The operator applies rendered resources with server-side apply and `ForceOwnership=true`. If a `Template` renders a resource whose `apiVersion`/`kind`/`namespace`/`name` matches an existing in-cluster resource, even one the operator did not create, the existing resource is silently adopted in place.
+
+What "adopted in place" means:
+
+- The resource's UID and `creationTimestamp` are preserved (it is mutated, not recreated).
+- The operator stamps it with the ownership labels, the `instance-ref` annotation, and the rendered-resource finalizer.
+- Fields written by the template are taken over from whatever field manager owned them previously.
+- Deleting the `TemplateInstance` will cascade-delete the adopted resource, even though the operator never created it.
+
+Mitigation:
+
+- Treat the rendered name set as a global namespace within each target namespace. A typo or a Template that reuses a common name (`config`, `app`, `tls`) can silently capture an unrelated resource.
+- Use a naming convention that includes the `TemplateInstance` name (for example `{{ .instance.name }}-config`) so collisions are accidental rather than routine.
+- Before applying a new `Template`, verify no resources of the same `apiVersion`/`kind`/`name`/`namespace` already exist in the consumer namespace.
+
+See also [Security model](./security.md) for the broader trust boundaries.
+
 ## TemplateInstance deletion
 
 When a `TemplateInstance` enters terminating state, the operator discovers every resource it owns via the ownership labels, deletes each, and then removes its own finalizer. The label-based discovery makes deletion safe even if `status.renderedResources` is empty or stale.
