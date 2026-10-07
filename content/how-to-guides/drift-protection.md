@@ -67,7 +67,7 @@ spec:
   # sync omitted -> mode defaults to off
 ```
 
-Resources are applied once and then left alone unless the `TemplateInstance`'s spec changes.
+Resources are applied once and then left alone: after the first clean apply the instance freezes, and neither `Template` nor `TemplateInstance` changes re-apply anything (see [Sync](../concepts/sync.md)).
 
 ## Verifying that sync is active
 

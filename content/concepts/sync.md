@@ -21,11 +21,24 @@ spec:
       - spec.template.spec.containers[*].env
 ```
 
-## `off`: fire-and-forget
+## `off`: create once, then frozen
 
-Original behavior. Resources are applied on `TemplateInstance` create/update and never touched again unless the `TemplateInstance` itself changes (parameters, template body, etc.). External controllers can edit them; the operator won't fight back.
+Resources are applied until the first clean pass (every resource applied, nothing left to clean up). The instance then freezes: no input change re-applies anything — not a `Template` edit, not a `TemplateInstance` edit (parameters included), not a change in a `valueFrom` source. Manual edits to the rendered resources survive, and a manually deleted resource is not recreated. The freeze start is recorded in `status.firstAppliedAt`.
 
-**Usage**: when other controllers will own the resources after creation, such as an HPA scaling a `Deployment`'s `replicas`, cert-manager rotating a `Secret`'s `data`, or GitOps editing fields the operator only seeded.
+To resume management, flip the `Template`'s `sync.mode` to `revert` or `strict`: the next reconcile applies the current render, and all accumulated input changes land at once (overwriting manual edits). Flipping back to `off` freezes again immediately.
+
+Outputs stay live while frozen: the operator keeps reading the rendered resources and refreshing `status.outputs` — for example a `LoadBalancer` IP that is only assigned after the apply.
+
+**Usage**: when other controllers or users own the resources after creation, such as an HPA scaling a `Deployment`'s `replicas`, cert-manager rotating a `Secret`'s `data`, or GitOps editing fields the operator only seeded.
+
+### Limitation: templated output sources need `exposeInStatus`
+
+A frozen instance resolves templated output source names (`outputs[].from.name`, `from.namespace`, `fromAll.namespace`) from `status.resolvedParameters` — the parameter values recorded at apply time — never from live values. A parameter referenced in such a template must set `exposeInStatus: true`. Without it, the value is not recorded, the source name cannot be resolved once the instance freezes, and that output fails with a condition message naming the parameter. Outputs with literal source names are unaffected.
+
+Plan for two consequences:
+
+- Adding `exposeInStatus: true` after the freeze does not heal the instance: values are only recorded on a full pass. Cycle the mode (`off` → `revert` → `off`) or recreate the instance.
+- An exposed value is readable by anyone who can `get` the `TemplateInstance`. Do not reference a Secret-sourced parameter in an output source name: its value would appear in plain text in status — and in the resource name itself.
 
 ## `revert`: continuous reconcile, no admission block
 

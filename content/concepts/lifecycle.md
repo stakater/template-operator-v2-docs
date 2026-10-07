@@ -41,7 +41,7 @@ When `sync` is enabled, an additional set of metadata is stamped for the drift w
 
 ## How rendered resources are applied
 
-The operator uses server-side apply as the field manager `template-operator` and takes ownership of every field it writes. Conflicts with another field manager resolve in favor of the operator: edits made by something else are taken back the next time the operator applies. For `sync.mode: off` that happens only when the `TemplateInstance` changes; for `revert` and `strict` it happens on every reconcile.
+The operator uses server-side apply as the field manager `template-operator` and takes ownership of every field it writes. Conflicts with another field manager resolve in favor of the operator: edits made by something else are taken back the next time the operator applies. For `sync.mode: off` that never happens after the first clean apply — the instance freezes and applies nothing further (see [Sync](./sync.md)); for `revert` and `strict` it happens on every reconcile.
 
 ## Updating a Template: orphan cleanup
 

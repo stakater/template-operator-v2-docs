@@ -155,6 +155,8 @@ defaultValue: changeme
 
 For every `valueFrom` source, the operator registers a watch via its dynamic informer registry. Changes to the source trigger re-reconciliation of the `TemplateInstance`. This is how secret rotation, ConfigMap edits, and ingress IP assignment propagate without a manual `kubectl edit`.
 
+This applies to `sync.mode: revert` and `strict` only. With `sync.mode: off`, the instance freezes after its first clean apply: the parameter watches are released, and source changes no longer propagate — see [Sync](sync.md).
+
 If the GVK referenced by an `objectFieldRef` cannot be resolved (for example, a CRD that isn't installed), the operator skips setting up a watch for that source. Parameter resolution will still fail at reconcile time, surfaced as `ParametersValid=False, Reason=ParameterResolutionFailed`.
 
 ## RBAC
