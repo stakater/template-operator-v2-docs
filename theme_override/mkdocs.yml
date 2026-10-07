@@ -1,0 +1,54 @@
+site_name: Template Operator v2
+docs_dir: content
+site_url: https://docs.stakater.com/template-operator-v2-docs/
+repo_url: https://github.com/stakater/template-operator-v2-docs
+edit_uri: blob/main/content/
+theme:
+  favicon: assets/images/favicon.svg
+
+strict: true
+validation:
+  links:
+    anchors: warn
+
+extra:
+  version:
+    provider: mike
+    default: latest
+
+nav:
+  - index.md
+  - About:
+      - about/key-features.md
+      - about/benefits.md
+  - Concepts:
+      - concepts/overview.md
+      - concepts/gotemplate.md
+      - concepts/helm.md
+      - concepts/parameters.md
+      - concepts/target-namespaces.md
+      - concepts/sync.md
+      - concepts/status.md
+      - concepts/lifecycle.md
+      - concepts/security.md
+  - Architecture:
+      - architecture/architecture.md
+      - architecture/logs-metrics.md
+  - Installation:
+      - installation/overview.md
+      - installation/openshift.md
+      - installation/kubernetes.md
+  - How-to Guides:
+      - how-to-guides/deploying-templates.md
+      - how-to-guides/using-gotemplate.md
+      - how-to-guides/deploying-helm-charts.md
+      - how-to-guides/deploying-private-helm-charts.md
+      - how-to-guides/parameters-and-overrides.md
+      - how-to-guides/target-namespaces.md
+      - how-to-guides/parameter-validation.md
+      - how-to-guides/drift-protection.md
+      - how-to-guides/orphan-resource-handling.md
+  - Reference:
+      - reference/api.md
+  - troubleshooting.md
+  - changelog.md
