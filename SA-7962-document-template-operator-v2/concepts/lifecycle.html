@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -3563,7 +3563,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </table>
 <p>When <code>sync</code> is enabled, an additional set of metadata is stamped for the drift webhook: see <a href="sync.html#ownership-metadata-used-by-sync">Sync</a>.</p>
 <h2 id="how-rendered-resources-are-applied">How rendered resources are applied<a class="headerlink" href="#how-rendered-resources-are-applied" title="Permanent link">#</a></h2>
-<p>The operator uses server-side apply as the field manager <code>template-operator</code> and takes ownership of every field it writes. Conflicts with another field manager resolve in favor of the operator: edits made by something else are taken back the next time the operator applies. For <code>sync.mode: off</code> that happens only when the <code>TemplateInstance</code> changes; for <code>revert</code> and <code>strict</code> it happens on every reconcile.</p>
+<p>The operator uses server-side apply as the field manager <code>template-operator</code> and takes ownership of every field it writes. Conflicts with another field manager resolve in favor of the operator: edits made by something else are taken back the next time the operator applies. For <code>sync.mode: off</code> that never happens after the first clean apply — the instance freezes and applies nothing further (see <a href="sync.html">Sync</a>); for <code>revert</code> and <code>strict</code> it happens on every reconcile.</p>
 <h2 id="updating-a-template-orphan-cleanup">Updating a Template: orphan cleanup<a class="headerlink" href="#updating-a-template-orphan-cleanup" title="Permanent link">#</a></h2>
 <p>When a <code>Template</code>'s render output shrinks or its resource names change, resources that were rendered last time but not this time become orphans. On every reconcile, the operator:</p>
 <ol>
@@ -4329,7 +4329,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "navigation.tracking", "toc.follow", "navigation.top"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   

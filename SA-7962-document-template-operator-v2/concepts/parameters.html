@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -3744,6 +3744,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </ul>
 <h2 id="watch-semantics">Watch semantics<a class="headerlink" href="#watch-semantics" title="Permanent link">#</a></h2>
 <p>For every <code>valueFrom</code> source, the operator registers a watch via its dynamic informer registry. Changes to the source trigger re-reconciliation of the <code>TemplateInstance</code>. This is how secret rotation, ConfigMap edits, and ingress IP assignment propagate without a manual <code>kubectl edit</code>.</p>
+<p>This applies to <code>sync.mode: revert</code> and <code>strict</code> only. With <code>sync.mode: off</code>, the instance freezes after its first clean apply: the parameter watches are released, and source changes no longer propagate — see <a href="sync.html">Sync</a>.</p>
 <p>If the GVK referenced by an <code>objectFieldRef</code> cannot be resolved (for example, a CRD that isn't installed), the operator skips setting up a watch for that source. Parameter resolution will still fail at reconcile time, surfaced as <code>ParametersValid=False, Reason=ParameterResolutionFailed</code>.</p>
 <h2 id="rbac">RBAC<a class="headerlink" href="#rbac" title="Permanent link">#</a></h2>
 <p>The operator's service account needs <code>get</code>, <code>list</code>, and <code>watch</code> on every GVK referenced by <code>objectFieldRef</code>. Standard core resources (<code>Secret</code>, <code>ConfigMap</code>, <code>Namespace</code>) are pre-granted by the chart. Adding new resource kinds to your <code>objectFieldRef</code> set requires granting the operator additional permissions.</p>
@@ -4461,7 +4462,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "navigation.tracking", "toc.follow", "navigation.top"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   

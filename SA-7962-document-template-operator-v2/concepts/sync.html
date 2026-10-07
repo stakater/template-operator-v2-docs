@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -2417,13 +2417,30 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </li>
       
         <li class="md-nav__item">
-  <a href="#off-fire-and-forget" class="md-nav__link">
+  <a href="#off-create-once-then-frozen" class="md-nav__link">
     <span class="md-ellipsis">
       
-        off: fire-and-forget
+        off: create once, then frozen
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="off: create once, then frozen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#limitation-templated-output-sources-need-exposeinstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitation: templated output sources need exposeInStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3384,13 +3401,30 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </li>
       
         <li class="md-nav__item">
-  <a href="#off-fire-and-forget" class="md-nav__link">
+  <a href="#off-create-once-then-frozen" class="md-nav__link">
     <span class="md-ellipsis">
       
-        off: fire-and-forget
+        off: create once, then frozen
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="off: create once, then frozen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#limitation-templated-output-sources-need-exposeinstatus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitation: templated output sources need exposeInStatus
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3578,9 +3612,18 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">metadata.annotations</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">spec.template.spec.containers[*].env</span>
 </code></pre></div>
-<h2 id="off-fire-and-forget"><code>off</code>: fire-and-forget<a class="headerlink" href="#off-fire-and-forget" title="Permanent link">#</a></h2>
-<p>Original behavior. Resources are applied on <code>TemplateInstance</code> create/update and never touched again unless the <code>TemplateInstance</code> itself changes (parameters, template body, etc.). External controllers can edit them; the operator won't fight back.</p>
-<p><strong>Usage</strong>: when other controllers will own the resources after creation, such as an HPA scaling a <code>Deployment</code>'s <code>replicas</code>, cert-manager rotating a <code>Secret</code>'s <code>data</code>, or GitOps editing fields the operator only seeded.</p>
+<h2 id="off-create-once-then-frozen"><code>off</code>: create once, then frozen<a class="headerlink" href="#off-create-once-then-frozen" title="Permanent link">#</a></h2>
+<p>Resources are applied until the first clean pass (every resource applied, nothing left to clean up). The instance then freezes: no input change re-applies anything — not a <code>Template</code> edit, not a <code>TemplateInstance</code> edit (parameters included), not a change in a <code>valueFrom</code> source. Manual edits to the rendered resources survive, and a manually deleted resource is not recreated. The freeze start is recorded in <code>status.firstAppliedAt</code>.</p>
+<p>To resume management, flip the <code>Template</code>'s <code>sync.mode</code> to <code>revert</code> or <code>strict</code>: the next reconcile applies the current render, and all accumulated input changes land at once (overwriting manual edits). Flipping back to <code>off</code> freezes again immediately.</p>
+<p>Outputs stay live while frozen: the operator keeps reading the rendered resources and refreshing <code>status.outputs</code> — for example a <code>LoadBalancer</code> IP that is only assigned after the apply.</p>
+<p><strong>Usage</strong>: when other controllers or users own the resources after creation, such as an HPA scaling a <code>Deployment</code>'s <code>replicas</code>, cert-manager rotating a <code>Secret</code>'s <code>data</code>, or GitOps editing fields the operator only seeded.</p>
+<h3 id="limitation-templated-output-sources-need-exposeinstatus">Limitation: templated output sources need <code>exposeInStatus</code><a class="headerlink" href="#limitation-templated-output-sources-need-exposeinstatus" title="Permanent link">#</a></h3>
+<p>A frozen instance resolves templated output source names (<code>outputs[].from.name</code>, <code>from.namespace</code>, <code>fromAll.namespace</code>) from <code>status.resolvedParameters</code> — the parameter values recorded at apply time — never from live values. A parameter referenced in such a template must set <code>exposeInStatus: true</code>. Without it, the value is not recorded, the source name cannot be resolved once the instance freezes, and that output fails with a condition message naming the parameter. Outputs with literal source names are unaffected.</p>
+<p>Plan for two consequences:</p>
+<ul>
+<li>Adding <code>exposeInStatus: true</code> after the freeze does not heal the instance: values are only recorded on a full pass. Cycle the mode (<code>off</code> → <code>revert</code> → <code>off</code>) or recreate the instance.</li>
+<li>An exposed value is readable by anyone who can <code>get</code> the <code>TemplateInstance</code>. Do not reference a Secret-sourced parameter in an output source name: its value would appear in plain text in status — and in the resource name itself.</li>
+</ul>
 <h2 id="revert-continuous-reconcile-no-admission-block"><code>revert</code>: continuous reconcile, no admission block<a class="headerlink" href="#revert-continuous-reconcile-no-admission-block" title="Permanent link">#</a></h2>
 <p>The controller, on every reconcile of the <code>TemplateInstance</code>, re-applies the rendered output to every owned resource:</p>
 <ol>
@@ -4384,7 +4427,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "navigation.tracking", "toc.follow", "navigation.top"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   
