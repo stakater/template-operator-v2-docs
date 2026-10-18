@@ -66,6 +66,8 @@ Everything `revert` does, plus a `ValidatingWebhookConfiguration` that intercept
 
 Users get an immediate API error at admission time rather than a delayed revert.
 
+The webhook is a single, **cluster-wide** `ValidatingWebhookConfiguration`, shared by every `strict` `Template`. It matches UPDATE/DELETE on all resources but narrows to managed ones with a `matchConditions` filter on the operator's ownership label, so it only evaluates objects the operator owns. The published Helm chart ships it with that filter in place; take care if you render the chart's manifests yourself, because a build of the webhook without that filter intercepts every write in the cluster.
+
 **Usage**: for mandatory policy resources such as `NetworkPolicy`, `RoleBinding`, or image-pull `Secret`s, where edits should be impossible, not just transient.
 
 ## `ignoreFields`
