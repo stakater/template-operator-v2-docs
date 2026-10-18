@@ -46,6 +46,7 @@ nav:
       - how-to-guides/distributing-a-configmap.md
       - how-to-guides/surfacing-status-with-outputs.md
       - how-to-guides/using-gotemplate.md
+      - how-to-guides/testing-templates.md
       - how-to-guides/deploying-helm-charts.md
       - how-to-guides/deploying-private-helm-charts.md
       - how-to-guides/parameters-and-overrides.md
@@ -55,5 +56,6 @@ nav:
       - how-to-guides/orphan-resource-handling.md
   - Reference:
       - reference/api.md
+      - reference/versioning-and-compatibility.md
   - troubleshooting.md
   - changelog.md
