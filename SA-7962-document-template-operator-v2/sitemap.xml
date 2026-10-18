@@ -117,6 +117,10 @@
          <lastmod>2026-10-18</lastmod>
     </url>
     <url>
+         <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/testing-templates.html</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/using-gotemplate.html</loc>
          <lastmod>2026-10-18</lastmod>
     </url>
@@ -134,6 +138,10 @@
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/reference/api.html</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/reference/versioning-and-compatibility.html</loc>
          <lastmod>2026-10-18</lastmod>
     </url>
 </urlset>
