@@ -2615,6 +2615,34 @@ This documentation is for a pull request deployment and is unreleased, it is onl
   
   
     <li class="md-nav__item">
+      <a href="outputs.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Outputs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="lifecycle.html" class="md-nav__link">
         
   
@@ -3634,6 +3662,10 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </ol>
 <p>External edits are accepted by the API server and then brought back in line with the rendered output on the next reconcile. The webhook is not involved in this mode, so the edit is not blocked at admission time, the convergence happens during the controller's normal reconcile loop.</p>
 <p><strong>Usage</strong>: for resources that may legitimately be edited from time to time (for example by a debugging engineer) but must always converge back to the rendered baseline.</p>
+<div class="admonition warning">
+<p class="admonition-title"><code>revert</code> does not recover a deleted resource</p>
+<p><code>revert</code> reverts in-place <em>edits</em>, not deletions. If someone deletes a managed resource by hand, the operator's finalizer leaves it stuck in <code>Terminating</code>: the drift check compares the still-matching spec and detects no drift, so the object is never re-created, yet the finalizer is never released — and the owning <code>TemplateInstance</code> keeps reporting <code>Ready</code>. Use <code>strict</code> for resources that must not be deleted; it rejects the <code>DELETE</code> at admission instead. (Tracked upstream: a deletion under <code>revert</code> should either be reverted or surfaced on the <code>Synced</code> condition.)</p>
+</div>
 <h2 id="strict-continuous-reconcile-plus-admission-webhook"><code>strict</code>: continuous reconcile <strong>plus</strong> admission webhook<a class="headerlink" href="#strict-continuous-reconcile-plus-admission-webhook" title="Permanent link">#</a></h2>
 <p>Everything <code>revert</code> does, plus a <code>ValidatingWebhookConfiguration</code> that intercepts UPDATE and DELETE on every resource carrying the operator's ownership label. The webhook:</p>
 <ul>
