@@ -46,6 +46,49 @@ Both paths are documented in [Resource adoption](./lifecycle.md#resource-adoptio
 
 **Mitigation**: include the `TemplateInstance` name in every rendered resource name (`{{ .instance.name }}-config` rather than just `config`), and review new `Template`s before allowing them into a provider namespace.
 
+## Rendered resources can target any namespace
+
+`targetNamespaces` controls which namespaces may **instantiate** a `Template` — not where its rendered resources land. A rendered manifest that carries an explicit `metadata.namespace` is applied to that namespace, by the operator's service account, whatever namespace the `TemplateInstance` lives in. (A manifest that omits the namespace defaults to the consumer's; see [Default namespace](./gotemplate.md#default-namespace).)
+
+Combined with the trust-boundary rule above, this means **anyone who can create a `Template` and a `TemplateInstance` can write anything the operator's service account is allowed to write, in any namespace** — the operator is a confused deputy. On default RBAC the operator can only manage `Template`s/`TemplateInstance`s and read `Namespace`s, so this is inert until the chart (or an integration built on it) grants the operator more and a non-admin is allowed to author Templates.
+
+**Mitigation**: confine the operator's writes with a `ValidatingAdmissionPolicy`. The operator stamps `templates.v2.stakater.com/instance-namespace` on every rendered object and overwrites any value a template sets, so the policy can trust it and a template cannot spoof it. This denies the operator any write whose owning `TemplateInstance` is in a different namespace, unless that namespace is explicitly trusted:
+
+```yaml
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: template-operator-v2-write-scope
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["*"]
+        apiVersions: ["*"]
+        resources: ["*"]
+        operations: ["CREATE", "UPDATE", "DELETE"]
+  variables:
+    - name: obj
+      expression: 'request.operation == "DELETE" ? oldObject : object'
+    - name: owner
+      expression: 'variables.obj.metadata.?labels[?"templates.v2.stakater.com/instance-namespace"].orValue("")'
+  matchConditions:
+    - name: is-operator
+      expression: 'request.userInfo.username == "system:serviceaccount:<operator-namespace>:<operator-serviceaccount>"'
+    - name: is-rendered-object
+      expression: '(object != null && "templates.v2.stakater.com/instance-namespace" in object.metadata.?labels.orValue({})) || (oldObject != null && "templates.v2.stakater.com/instance-namespace" in oldObject.metadata.?labels.orValue({}))'
+  validations:
+    - expression: 'variables.owner in ["<trusted-namespaces>"] || (has(variables.obj.metadata.namespace) && variables.obj.metadata.namespace == variables.owner)'
+      messageExpression: '"template-operator-v2: a TemplateInstance in namespace " + variables.owner + " may only write objects in its own namespace"'
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata: { name: template-operator-v2-write-scope }
+spec:
+  policyName: template-operator-v2-write-scope
+  validationActions: [Deny]
+```
+
 ## Secrets and credentials
 
 - The Helm chart-pull `Secret` referenced by `Template.spec.helm.chart.repository.auth.secretRef` lives in the **provider namespace**, never in the consumer namespace. Consumers never need access to registry credentials.
