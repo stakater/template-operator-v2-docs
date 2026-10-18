@@ -53,6 +53,9 @@ External edits are accepted by the API server and then brought back in line with
 
 **Usage**: for resources that may legitimately be edited from time to time (for example by a debugging engineer) but must always converge back to the rendered baseline.
 
+!!! warning "`revert` does not recover a deleted resource"
+    `revert` reverts in-place *edits*, not deletions. If someone deletes a managed resource by hand, the operator's finalizer leaves it stuck in `Terminating`: the drift check compares the still-matching spec and detects no drift, so the object is never re-created, yet the finalizer is never released — and the owning `TemplateInstance` keeps reporting `Ready`. Use `strict` for resources that must not be deleted; it rejects the `DELETE` at admission instead. (Tracked upstream: a deletion under `revert` should either be reverted or surfaced on the `Synced` condition.)
+
 ## `strict`: continuous reconcile **plus** admission webhook
 
 Everything `revert` does, plus a `ValidatingWebhookConfiguration` that intercepts UPDATE and DELETE on every resource carrying the operator's ownership label. The webhook:
