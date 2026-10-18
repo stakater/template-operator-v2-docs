@@ -69,6 +69,10 @@
          <lastmod>2026-10-18</lastmod>
     </url>
     <url>
+         <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/composing-templateinstances.html</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/deploying-helm-charts.html</loc>
          <lastmod>2026-10-18</lastmod>
     </url>
@@ -78,6 +82,10 @@
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/deploying-templates.html</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/distributing-a-configmap.html</loc>
          <lastmod>2026-10-18</lastmod>
     </url>
     <url>
@@ -94,6 +102,14 @@
     </url>
     <url>
          <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/parameters-and-overrides.html</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/rendering-to-many-namespaces.html</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://docs.stakater.com/template-operator-v2-docs/SA-7962-document-template-operator-v2/how-to-guides/surfacing-status-with-outputs.html</loc>
          <lastmod>2026-10-18</lastmod>
     </url>
     <url>
