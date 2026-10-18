@@ -29,6 +29,7 @@ nav:
       - concepts/target-namespaces.md
       - concepts/sync.md
       - concepts/status.md
+      - concepts/outputs.md
       - concepts/lifecycle.md
       - concepts/security.md
   - Architecture:

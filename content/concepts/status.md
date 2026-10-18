@@ -188,5 +188,6 @@ status:
 
 ## See also
 
+- [Outputs](./outputs.md) for `status.outputs` and the `OutputsResolved` condition.
 - [Troubleshooting](../troubleshooting.md) maps common failure conditions to fixes.
 - [API reference: `TemplateStatus`](../reference/api.md#templatestatus) and [`TemplateInstanceStatus`](../reference/api.md#templateinstancestatus).
