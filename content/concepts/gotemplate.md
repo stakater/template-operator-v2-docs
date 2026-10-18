@@ -29,6 +29,19 @@ Everything else from Sprig is available: string manipulation, dates, conditional
 
 The same context is also passed to `helm.valuesTemplate` when using the Helm engine, so anything you learn here transfers.
 
+## Missing keys are an error
+
+The template is executed with Go's `missingkey=error` option, so reading a map key that does not exist fails the whole render rather than emitting `<no value>`. This bites most often when reading optional fields off a resource pulled in through an [`objectFieldRef`](./parameters.md) parameter — for example `{{ $obj.metadata.labels.team }}` on an object that has no `labels`, or no `team` label, aborts the render.
+
+Read optional keys defensively instead of as struct fields:
+
+```gotemplate
+{{- $labels := default dict $obj.metadata.labels }}   {{/* nil-safe */}}
+{{- if hasKey $labels "team" }}{{ index $labels "team" }}{{ end }}
+```
+
+`.parameters.<name>` itself is always present (an unresolved required parameter fails earlier, at parameter resolution) — this applies to keys you read *within* a parameter's value.
+
 ## Multi-document output
 
 A single `spec.gotemplate` can emit any number of Kubernetes manifests separated by YAML document markers (`---`):
