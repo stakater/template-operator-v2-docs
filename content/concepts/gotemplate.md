@@ -18,6 +18,9 @@ The string is parsed with Go's [`text/template`](https://pkg.go.dev/text/templat
 
 Everything else from Sprig is available: string manipulation, dates, conditionals, math, encoding.
 
+!!! note "This is Sprig, not Helm"
+    `gotemplate` is Go `text/template` with Sprig — **not** Helm templating. Helm-only helpers do not exist here: `toYaml`, `fromYaml`, `include`, `tpl`, `lookup` and `.Files` are all unavailable. For JSON, use Sprig's `mustFromJson` (it decodes both arrays and objects, unlike Helm's map-only `fromJson`) and `toJson`. A handy trick: `toJson` output is valid YAML, so `{{ $obj | toJson }}` stands in for the `toYaml` you might reach for.
+
 ## Available data
 
 | Path | Value |
