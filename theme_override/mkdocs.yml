@@ -41,6 +41,10 @@ nav:
       - installation/kubernetes.md
   - How-to Guides:
       - how-to-guides/deploying-templates.md
+      - how-to-guides/rendering-to-many-namespaces.md
+      - how-to-guides/composing-templateinstances.md
+      - how-to-guides/distributing-a-configmap.md
+      - how-to-guides/surfacing-status-with-outputs.md
       - how-to-guides/using-gotemplate.md
       - how-to-guides/deploying-helm-charts.md
       - how-to-guides/deploying-private-helm-charts.md
