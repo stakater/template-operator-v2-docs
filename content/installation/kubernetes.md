@@ -14,7 +14,7 @@ The Helm chart is published to GitHub Container Registry as an OCI artifact:
 
 ```bash
 helm install template-operator-v2 \
-  oci://ghcr.io/stakater/charts/template-operator-v2 \
+  oci://ghcr.io/stakater/public/charts/template-operator-v2 \
   --namespace template-operator-system \
   --create-namespace
 ```
