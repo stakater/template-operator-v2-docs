@@ -22,6 +22,10 @@ Installation registers two CRDs in the API group `templates.v2.stakater.com`, ve
 
 The operator is intended to run in `template-operator-system`. The Helm chart creates this namespace if it doesn't exist.
 
+## Already running Multi-Tenant Operator?
+
+If the cluster runs Stakater's Multi-Tenant Operator (MTO), you do not install this chart directly — MTO can deploy and manage Template Operator v2 for you. Set `components.templateOperatorV2.mode: Managed` in the `IntegrationConfig`, and MTO runs the operator in its own namespace. The guides below are for a standalone install.
+
 ## Next steps
 
 Pick the guide that matches your environment:
