@@ -2579,6 +2579,17 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </li>
       
         <li class="md-nav__item">
+  <a href="#rendered-resources-can-target-any-namespace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rendered resources can target any namespace
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#secrets-and-credentials" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3396,6 +3407,17 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </li>
       
         <li class="md-nav__item">
+  <a href="#rendered-resources-can-target-any-namespace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rendered resources can target any namespace
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#secrets-and-credentials" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3494,6 +3516,43 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </ul>
 <p>Both paths are documented in <a href="lifecycle.html#resource-adoption">Resource adoption</a>. The implication for the security model: <strong>a <code>Template</code>'s rendered resource names are unrestricted within the consumer's namespace</strong>, and a misnamed template can silently take over and later delete an unrelated resource.</p>
 <p><strong>Mitigation</strong>: include the <code>TemplateInstance</code> name in every rendered resource name (<code>{{ .instance.name }}-config</code> rather than just <code>config</code>), and review new <code>Template</code>s before allowing them into a provider namespace.</p>
+<h2 id="rendered-resources-can-target-any-namespace">Rendered resources can target any namespace<a class="headerlink" href="#rendered-resources-can-target-any-namespace" title="Permanent link">#</a></h2>
+<p><code>targetNamespaces</code> controls which namespaces may <strong>instantiate</strong> a <code>Template</code> — not where its rendered resources land. A rendered manifest that carries an explicit <code>metadata.namespace</code> is applied to that namespace, by the operator's service account, whatever namespace the <code>TemplateInstance</code> lives in. (A manifest that omits the namespace defaults to the consumer's; see <a href="gotemplate.html#default-namespace">Default namespace</a>.)</p>
+<p>Combined with the trust-boundary rule above, this means <strong>anyone who can create a <code>Template</code> and a <code>TemplateInstance</code> can write anything the operator's service account is allowed to write, in any namespace</strong> — the operator is a confused deputy. On default RBAC the operator can only manage <code>Template</code>s/<code>TemplateInstance</code>s and read <code>Namespace</code>s, so this is inert until the chart (or an integration built on it) grants the operator more and a non-admin is allowed to author Templates.</p>
+<p><strong>Mitigation</strong>: confine the operator's writes with a <code>ValidatingAdmissionPolicy</code>. The operator stamps <code>templates.v2.stakater.com/instance-namespace</code> on every rendered object and overwrites any value a template sets, so the policy can trust it and a template cannot spoof it. This denies the operator any write whose owning <code>TemplateInstance</code> is in a different namespace, unless that namespace is explicitly trusted:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">admissionregistration.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ValidatingAdmissionPolicy</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">template-operator-v2-write-scope</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">failurePolicy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Fail</span>
+<span class="w">  </span><span class="nt">matchConstraints</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">resourceRules</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiGroups</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"*"</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">apiVersions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"*"</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">resources</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"*"</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">operations</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"CREATE"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"UPDATE"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"DELETE"</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">variables</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">obj</span>
+<span class="w">      </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="s">'request.operation</span><span class="nv"> </span><span class="s">==</span><span class="nv"> </span><span class="s">"DELETE"</span><span class="nv"> </span><span class="s">?</span><span class="nv"> </span><span class="s">oldObject</span><span class="nv"> </span><span class="s">:</span><span class="nv"> </span><span class="s">object'</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">owner</span>
+<span class="w">      </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="s">'variables.obj.metadata.?labels[?"templates.v2.stakater.com/instance-namespace"].orValue("")'</span>
+<span class="w">  </span><span class="nt">matchConditions</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">is-operator</span>
+<span class="w">      </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="s">'request.userInfo.username</span><span class="nv"> </span><span class="s">==</span><span class="nv"> </span><span class="s">"system:serviceaccount:&lt;operator-namespace&gt;:&lt;operator-serviceaccount&gt;"'</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">is-rendered-object</span>
+<span class="w">      </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="s">'(object</span><span class="nv"> </span><span class="s">!=</span><span class="nv"> </span><span class="s">null</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">"templates.v2.stakater.com/instance-namespace"</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">object.metadata.?labels.orValue({}))</span><span class="nv"> </span><span class="s">||</span><span class="nv"> </span><span class="s">(oldObject</span><span class="nv"> </span><span class="s">!=</span><span class="nv"> </span><span class="s">null</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">"templates.v2.stakater.com/instance-namespace"</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">oldObject.metadata.?labels.orValue({}))'</span>
+<span class="w">  </span><span class="nt">validations</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="s">'variables.owner</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">["&lt;trusted-namespaces&gt;"]</span><span class="nv"> </span><span class="s">||</span><span class="nv"> </span><span class="s">(has(variables.obj.metadata.namespace)</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">variables.obj.metadata.namespace</span><span class="nv"> </span><span class="s">==</span><span class="nv"> </span><span class="s">variables.owner)'</span>
+<span class="w">      </span><span class="nt">messageExpression</span><span class="p">:</span><span class="w"> </span><span class="s">'"template-operator-v2:</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">TemplateInstance</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">namespace</span><span class="nv"> </span><span class="s">"</span><span class="nv"> </span><span class="s">+</span><span class="nv"> </span><span class="s">variables.owner</span><span class="nv"> </span><span class="s">+</span><span class="nv"> </span><span class="s">"</span><span class="nv"> </span><span class="s">may</span><span class="nv"> </span><span class="s">only</span><span class="nv"> </span><span class="s">write</span><span class="nv"> </span><span class="s">objects</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">its</span><span class="nv"> </span><span class="s">own</span><span class="nv"> </span><span class="s">namespace"'</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">admissionregistration.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ValidatingAdmissionPolicyBinding</span>
+<span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> name</span><span class="p">:</span><span class="w"> </span><span class="nv">template-operator-v2-write-scope</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">policyName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">template-operator-v2-write-scope</span>
+<span class="w">  </span><span class="nt">validationActions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">Deny</span><span class="p p-Indicator">]</span>
+</code></pre></div>
 <h2 id="secrets-and-credentials">Secrets and credentials<a class="headerlink" href="#secrets-and-credentials" title="Permanent link">#</a></h2>
 <ul>
 <li>The Helm chart-pull <code>Secret</code> referenced by <code>Template.spec.helm.chart.repository.auth.secretRef</code> lives in the <strong>provider namespace</strong>, never in the consumer namespace. Consumers never need access to registry credentials.</li>

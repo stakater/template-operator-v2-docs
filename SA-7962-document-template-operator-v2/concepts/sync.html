@@ -3674,6 +3674,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <li>Rejects UPDATE if the change touches any field outside <code>sync.ignoreFields</code>.</li>
 </ul>
 <p>Users get an immediate API error at admission time rather than a delayed revert.</p>
+<p>The webhook is a single, <strong>cluster-wide</strong> <code>ValidatingWebhookConfiguration</code>, shared by every <code>strict</code> <code>Template</code>. It matches UPDATE/DELETE on all resources but narrows to managed ones with a <code>matchConditions</code> filter on the operator's ownership label, so it only evaluates objects the operator owns. The published Helm chart ships it with that filter in place; take care if you render the chart's manifests yourself, because a build of the webhook without that filter intercepts every write in the cluster.</p>
 <p><strong>Usage</strong>: for mandatory policy resources such as <code>NetworkPolicy</code>, <code>RoleBinding</code>, or image-pull <code>Secret</code>s, where edits should be impossible, not just transient.</p>
 <h2 id="ignorefields"><code>ignoreFields</code><a class="headerlink" href="#ignorefields" title="Permanent link">#</a></h2>
 <p><code>sync.ignoreFields</code> is a list of field paths that are <strong>not</strong> enforced. Changes to those paths are allowed even when sync is on.</p>

@@ -2743,6 +2743,17 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </li>
       
         <li class="md-nav__item">
+  <a href="#already-running-multi-tenant-operator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Already running Multi-Tenant Operator?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3329,6 +3340,17 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </li>
       
         <li class="md-nav__item">
+  <a href="#already-running-multi-tenant-operator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Already running Multi-Tenant Operator?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3377,6 +3399,8 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </ul>
 <h2 id="default-namespace">Default namespace<a class="headerlink" href="#default-namespace" title="Permanent link">#</a></h2>
 <p>The operator is intended to run in <code>template-operator-system</code>. The Helm chart creates this namespace if it doesn't exist.</p>
+<h2 id="already-running-multi-tenant-operator">Already running Multi-Tenant Operator?<a class="headerlink" href="#already-running-multi-tenant-operator" title="Permanent link">#</a></h2>
+<p>If the cluster runs Stakater's Multi-Tenant Operator (MTO), you do not install this chart directly — MTO can deploy and manage Template Operator v2 for you. Set <code>components.templateOperatorV2.mode: Managed</code> in the <code>IntegrationConfig</code>, and MTO runs the operator in its own namespace. The guides below are for a standalone install.</p>
 <h2 id="next-steps">Next steps<a class="headerlink" href="#next-steps" title="Permanent link">#</a></h2>
 <p>Pick the guide that matches your environment:</p>
 <ul>

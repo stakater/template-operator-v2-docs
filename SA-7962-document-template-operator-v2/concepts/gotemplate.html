@@ -2327,6 +2327,17 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </li>
       
         <li class="md-nav__item">
+  <a href="#missing-keys-are-an-error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Missing keys are an error
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#multi-document-output" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3362,6 +3373,17 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </li>
       
         <li class="md-nav__item">
+  <a href="#missing-keys-are-an-error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Missing keys are an error
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#multi-document-output" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3441,6 +3463,10 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <li><code>getHostByName</code> would trigger DNS lookups (side effect and SSRF surface).</li>
 </ul>
 <p>Everything else from Sprig is available: string manipulation, dates, conditionals, math, encoding.</p>
+<div class="admonition note">
+<p class="admonition-title">This is Sprig, not Helm</p>
+<p><code>gotemplate</code> is Go <code>text/template</code> with Sprig — <strong>not</strong> Helm templating. Helm-only helpers do not exist here: <code>toYaml</code>, <code>fromYaml</code>, <code>include</code>, <code>tpl</code>, <code>lookup</code> and <code>.Files</code> are all unavailable. For JSON, use Sprig's <code>mustFromJson</code> (it decodes both arrays and objects, unlike Helm's map-only <code>fromJson</code>) and <code>toJson</code>. A handy trick: <code>toJson</code> output is valid YAML, so <code>{{ $obj | toJson }}</code> stands in for the <code>toYaml</code> you might reach for.</p>
+</div>
 <h2 id="available-data">Available data<a class="headerlink" href="#available-data" title="Permanent link">#</a></h2>
 <table>
 <thead>
@@ -3469,6 +3495,13 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </tbody>
 </table>
 <p>The same context is also passed to <code>helm.valuesTemplate</code> when using the Helm engine, so anything you learn here transfers.</p>
+<h2 id="missing-keys-are-an-error">Missing keys are an error<a class="headerlink" href="#missing-keys-are-an-error" title="Permanent link">#</a></h2>
+<p>The template is executed with Go's <code>missingkey=error</code> option, so reading a map key that does not exist fails the whole render rather than emitting <code>&lt;no value&gt;</code>. This bites most often when reading optional fields off a resource pulled in through an <a href="parameters.html"><code>objectFieldRef</code></a> parameter — for example <code>{{ $obj.metadata.labels.team }}</code> on an object that has no <code>labels</code>, or no <code>team</code> label, aborts the render.</p>
+<p>Read optional keys defensively instead of as struct fields:</p>
+<div class="highlight"><pre><span></span><code>{{- $labels := default dict $obj.metadata.labels }}   {{/* nil-safe */}}
+{{- if hasKey $labels "team" }}{{ index $labels "team" }}{{ end }}
+</code></pre></div>
+<p><code>.parameters.&lt;name&gt;</code> itself is always present (an unresolved required parameter fails earlier, at parameter resolution) — this applies to keys you read <em>within</em> a parameter's value.</p>
 <h2 id="multi-document-output">Multi-document output<a class="headerlink" href="#multi-document-output" title="Permanent link">#</a></h2>
 <p>A single <code>spec.gotemplate</code> can emit any number of Kubernetes manifests separated by YAML document markers (<code>---</code>):</p>
 <div class="highlight"><pre><span></span><code><span class="nt">spec</span><span class="p">:</span>
