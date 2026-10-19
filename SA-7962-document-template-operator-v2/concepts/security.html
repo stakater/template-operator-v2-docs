@@ -2579,13 +2579,30 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </li>
       
         <li class="md-nav__item">
-  <a href="#rendered-resources-can-target-any-namespace" class="md-nav__link">
+  <a href="#where-rendered-resources-land" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Rendered resources can target any namespace
+        Where rendered resources land
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Where rendered resources land">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#optional-an-extra-guardrail-with-admission-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional: an extra guardrail with admission policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3575,13 +3592,30 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </li>
       
         <li class="md-nav__item">
-  <a href="#rendered-resources-can-target-any-namespace" class="md-nav__link">
+  <a href="#where-rendered-resources-land" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Rendered resources can target any namespace
+        Where rendered resources land
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Where rendered resources land">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#optional-an-extra-guardrail-with-admission-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional: an extra guardrail with admission policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3684,10 +3718,15 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </ul>
 <p>Both paths are documented in <a href="lifecycle.html#resource-adoption">Resource adoption</a>. The implication for the security model: <strong>a <code>Template</code>'s rendered resource names are unrestricted within the consumer's namespace</strong>, and a misnamed template can silently take over and later delete an unrelated resource.</p>
 <p><strong>Mitigation</strong>: include the <code>TemplateInstance</code> name in every rendered resource name (<code>{{ .instance.name }}-config</code> rather than just <code>config</code>), and review new <code>Template</code>s before allowing them into a provider namespace.</p>
-<h2 id="rendered-resources-can-target-any-namespace">Rendered resources can target any namespace<a class="headerlink" href="#rendered-resources-can-target-any-namespace" title="Permanent link">#</a></h2>
-<p><code>targetNamespaces</code> controls which namespaces may <strong>instantiate</strong> a <code>Template</code> — not where its rendered resources land. A rendered manifest that carries an explicit <code>metadata.namespace</code> is applied to that namespace, by the operator's service account, whatever namespace the <code>TemplateInstance</code> lives in. (A manifest that omits the namespace defaults to the consumer's; see <a href="gotemplate.html#default-namespace">Default namespace</a>.)</p>
-<p>Combined with the trust-boundary rule above, this means <strong>anyone who can create a <code>Template</code> and a <code>TemplateInstance</code> can write anything the operator's service account is allowed to write, in any namespace</strong> — the operator is a confused deputy. On default RBAC the operator can only manage <code>Template</code>s/<code>TemplateInstance</code>s and read <code>Namespace</code>s, so this is inert until the chart (or an integration built on it) grants the operator more and a non-admin is allowed to author Templates.</p>
-<p><strong>Mitigation</strong>: confine the operator's writes with a <code>ValidatingAdmissionPolicy</code>. The operator stamps <code>templates.v2.stakater.com/instance-namespace</code> on every rendered object and overwrites any value a template sets, so the policy can trust it and a template cannot spoof it. This denies the operator any write whose owning <code>TemplateInstance</code> is in a different namespace, unless that namespace is explicitly trusted:</p>
+<h2 id="where-rendered-resources-land">Where rendered resources land<a class="headerlink" href="#where-rendered-resources-land" title="Permanent link">#</a></h2>
+<p><code>targetNamespaces</code> controls which namespaces may <strong>instantiate</strong> a <code>Template</code> — not where its rendered resources go. A rendered manifest with an explicit <code>metadata.namespace</code> is applied to that namespace; one that omits it defaults to the consumer's (see <a href="gotemplate.html#default-namespace">Default namespace</a>). The operator applies every rendered resource with <strong>its own service account</strong>, so:</p>
+<p><strong>The RBAC of the service account the operator applies as is the boundary.</strong> Grant it only the namespaces and resource kinds your Templates actually need — that is how you decide where resources may land, and who (by being allowed to author Templates in a provider namespace) can cause those writes. On default chart RBAC the operator can only manage <code>Template</code>s/<code>TemplateInstance</code>s and read <code>Namespace</code>s, so it is inert until you widen it; widen it deliberately and narrowly. This is intended behaviour, not a gap: scope the grant, not the template.</p>
+<div class="admonition note">
+<p class="admonition-title">Per-instance service accounts</p>
+<p>The intended direction is for a <code>TemplateInstance</code> to name a service account the operator <strong>impersonates</strong> when applying, so the <em>consumer's</em> RBAC becomes the boundary and the operator holds no standing write permission. Until that ships, scope the operator's own service account as above.</p>
+</div>
+<h3 id="optional-an-extra-guardrail-with-admission-policy">Optional: an extra guardrail with admission policy<a class="headerlink" href="#optional-an-extra-guardrail-with-admission-policy" title="Permanent link">#</a></h3>
+<p>Scoping the operator's RBAC is the primary control. As defence in depth — especially where many Templates share one broadly-permissioned operator — a <code>ValidatingAdmissionPolicy</code> can additionally require that a rendered object's namespace matches its owning <code>TemplateInstance</code> (or an allow-listed namespace). The operator stamps <code>templates.v2.stakater.com/instance-namespace</code> on every rendered object and overwrites any value a template sets, so the policy can trust it:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">admissionregistration.k8s.io/v1</span>
 <span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ValidatingAdmissionPolicy</span>
 <span class="nt">metadata</span><span class="p">:</span>

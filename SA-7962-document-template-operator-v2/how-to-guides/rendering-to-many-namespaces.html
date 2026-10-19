@@ -3632,7 +3632,7 @@ kubectl<span class="w"> </span>create<span class="w"> </span>namespace<span clas
 kubectl<span class="w"> </span>get<span class="w"> </span>configmap<span class="w"> </span>cluster-info<span class="w"> </span>-n<span class="w"> </span>team-c<span class="w"> </span><span class="c1"># appears without touching the TemplateInstance</span>
 </code></pre></div>
 <h2 id="rbac-and-scope">RBAC and scope<a class="headerlink" href="#rbac-and-scope" title="Permanent link">#</a></h2>
-<p>The rendered <code>ConfigMap</code>s carry an explicit <code>metadata.namespace</code>, so the operator writes them into those namespaces — the operator's service account needs <code>configmaps</code> write there, and the write is not limited by <code>targetNamespaces</code>. Review <a href="../concepts/security.html#rendered-resources-can-target-any-namespace">Security → rendered resources can target any namespace</a> before fanning out across namespaces you do not control.</p>
+<p>The rendered <code>ConfigMap</code>s carry an explicit <code>metadata.namespace</code>, so the operator writes them into those namespaces — the operator's service account needs <code>configmaps</code> write there, and the write is not limited by <code>targetNamespaces</code>. Review <a href="../concepts/security.html#where-rendered-resources-land">Security → where rendered resources land</a> before fanning out across namespaces you do not control.</p>
 <h2 id="see-also">See also<a class="headerlink" href="#see-also" title="Permanent link">#</a></h2>
 <ul>
 <li><a href="composing-templateinstances.html">Composing TemplateInstances</a> when each item needs its own status and failure isolation.</li>
