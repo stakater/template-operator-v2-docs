@@ -46,13 +46,18 @@ Both paths are documented in [Resource adoption](./lifecycle.md#resource-adoptio
 
 **Mitigation**: include the `TemplateInstance` name in every rendered resource name (`{{ .instance.name }}-config` rather than just `config`), and review new `Template`s before allowing them into a provider namespace.
 
-## Rendered resources can target any namespace
+## Where rendered resources land
 
-`targetNamespaces` controls which namespaces may **instantiate** a `Template` — not where its rendered resources land. A rendered manifest that carries an explicit `metadata.namespace` is applied to that namespace, by the operator's service account, whatever namespace the `TemplateInstance` lives in. (A manifest that omits the namespace defaults to the consumer's; see [Default namespace](./gotemplate.md#default-namespace).)
+`targetNamespaces` controls which namespaces may **instantiate** a `Template` — not where its rendered resources go. A rendered manifest with an explicit `metadata.namespace` is applied to that namespace; one that omits it defaults to the consumer's (see [Default namespace](./gotemplate.md#default-namespace)). The operator applies every rendered resource with **its own service account**, so:
 
-Combined with the trust-boundary rule above, this means **anyone who can create a `Template` and a `TemplateInstance` can write anything the operator's service account is allowed to write, in any namespace** — the operator is a confused deputy. On default RBAC the operator can only manage `Template`s/`TemplateInstance`s and read `Namespace`s, so this is inert until the chart (or an integration built on it) grants the operator more and a non-admin is allowed to author Templates.
+**The RBAC of the service account the operator applies as is the boundary.** Grant it only the namespaces and resource kinds your Templates actually need — that is how you decide where resources may land, and who (by being allowed to author Templates in a provider namespace) can cause those writes. On default chart RBAC the operator can only manage `Template`s/`TemplateInstance`s and read `Namespace`s, so it is inert until you widen it; widen it deliberately and narrowly. This is intended behaviour, not a gap: scope the grant, not the template.
 
-**Mitigation**: confine the operator's writes with a `ValidatingAdmissionPolicy`. The operator stamps `templates.v2.stakater.com/instance-namespace` on every rendered object and overwrites any value a template sets, so the policy can trust it and a template cannot spoof it. This denies the operator any write whose owning `TemplateInstance` is in a different namespace, unless that namespace is explicitly trusted:
+!!! note "Per-instance service accounts"
+    The intended direction is for a `TemplateInstance` to name a service account the operator **impersonates** when applying, so the *consumer's* RBAC becomes the boundary and the operator holds no standing write permission. Until that ships, scope the operator's own service account as above.
+
+### Optional: an extra guardrail with admission policy
+
+Scoping the operator's RBAC is the primary control. As defence in depth — especially where many Templates share one broadly-permissioned operator — a `ValidatingAdmissionPolicy` can additionally require that a rendered object's namespace matches its owning `TemplateInstance` (or an allow-listed namespace). The operator stamps `templates.v2.stakater.com/instance-namespace` on every rendered object and overwrites any value a template sets, so the policy can trust it:
 
 ```yaml
 apiVersion: admissionregistration.k8s.io/v1
