@@ -75,7 +75,7 @@ kubectl get configmap cluster-info -n team-c # appears without touching the Temp
 
 ## RBAC and scope
 
-The rendered `ConfigMap`s carry an explicit `metadata.namespace`, so the operator writes them into those namespaces — the operator's service account needs `configmaps` write there, and the write is not limited by `targetNamespaces`. Review [Security → rendered resources can target any namespace](../concepts/security.md#rendered-resources-can-target-any-namespace) before fanning out across namespaces you do not control.
+The rendered `ConfigMap`s carry an explicit `metadata.namespace`, so the operator writes them into those namespaces — the operator's service account needs `configmaps` write there, and the write is not limited by `targetNamespaces`. Review [Security → where rendered resources land](../concepts/security.md#where-rendered-resources-land) before fanning out across namespaces you do not control.
 
 ## See also
 
