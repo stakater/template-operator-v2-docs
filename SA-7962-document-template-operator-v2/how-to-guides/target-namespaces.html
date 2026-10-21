@@ -3600,7 +3600,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">      </span><span class="nt">matchLabels</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tenant</span>
 </code></pre></div>
-<p>The operator reads each consumer namespace's labels at admission time. Adding the label to a new namespace immediately makes it eligible; removing the label causes <code>TargetNamespaceAllowed</code> to flip to <code>False</code> on the next reconcile of any <code>TemplateInstance</code> in that namespace.</p>
+<p>The operator reads the consumer namespace's labels when it reconciles a <code>TemplateInstance</code>. After you add the label, a refused instance is admitted on its next retry. Removing the label does not affect an instance that is already applied until that instance reconciles again; under <code>sync.mode: off</code> it is frozen and is not checked again.</p>
 <h2 id="scenario-3-combine-explicit-and-label-based-access">Scenario 3: combine explicit and label-based access<a class="headerlink" href="#scenario-3-combine-explicit-and-label-based-access" title="Permanent link">#</a></h2>
 <p>Bill wants the <code>Template</code> available to every tenant namespace, plus the <code>shared-platform</code> namespace which doesn't carry the tenant label.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">spec</span><span class="p">:</span>

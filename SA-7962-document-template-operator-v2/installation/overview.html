@@ -3558,6 +3558,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <li>Cluster-admin permissions. Installation creates a <code>Namespace</code>, two <code>CustomResourceDefinitions</code>, <code>ClusterRole</code> / <code>ClusterRoleBinding</code> objects, and a <code>Deployment</code>.</li>
 <li><code>kubectl</code> (or <code>oc</code> for OpenShift).</li>
 <li><code>helm</code> v3.x.</li>
+<li><a href="https://cert-manager.io/docs/installation/">cert-manager</a> on the cluster. The operator always runs its admission webhook, and the chart issues the webhook's TLS certificate through cert-manager. On OpenShift, the service-ca operator can issue it instead; see <a href="openshift.html#without-cert-manager">Install on OpenShift</a>.</li>
 </ul>
 <h2 id="custom-resources-installed">Custom resources installed<a class="headerlink" href="#custom-resources-installed" title="Permanent link">#</a></h2>
 <p>Installation registers two CRDs in the API group <code>templates.v2.stakater.com</code>, version <code>v2alpha1</code>:</p>

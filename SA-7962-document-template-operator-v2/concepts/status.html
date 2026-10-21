@@ -3727,7 +3727,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </ul>
 <p><code>TemplateInstance</code> phases:</p>
 <ul>
-<li><code>Ready</code>: all conditions are true.</li>
+<li><code>Ready</code>: the instance rendered and applied. Conditions that report extra state, such as <code>OutputsResolved</code> or <code>Synced</code>, do not change the phase. Under <code>sync.mode: off</code>, a <code>Ready</code> instance shows <code>Synced=False</code> with reason <code>Frozen</code>; this is normal.</li>
 <li><code>Failed</code>: at least one of <code>TemplateResolved</code>, <code>TargetNamespaceAllowed</code>, <code>ParametersValid</code>, <code>Rendered</code>, or <code>Applied</code> is <code>False</code>.</li>
 </ul>
 <h2 id="observedgeneration">ObservedGeneration<a class="headerlink" href="#observedgeneration" title="Permanent link">#</a></h2>

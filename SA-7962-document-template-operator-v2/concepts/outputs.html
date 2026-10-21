@@ -3661,7 +3661,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <li><code>fields[].name</code> is the <strong>outer key</strong> under <code>status.outputs</code>. It must be unique across the flattened set of every <code>fields[].name</code> in the <code>Template</code>.</li>
 <li><code>fields[].jsonPath</code> is a JSONPath query wrapped in <code>{...}</code>. A scalar result is stored as-is; an array or object result is JSON-encoded — <code>"{.status.loadBalancer.ingress[*].ip}"</code> becomes <code>'["10.0.0.1","10.0.0.2"]'</code>.</li>
 </ul>
-<p>The result lands at <code>status.outputs.&lt;output-name&gt;.&lt;field-name&gt;</code>.</p>
+<p>The result lands at <code>status.outputs.&lt;field-name&gt;.&lt;key&gt;</code>, where <code>keyTemplate</code> renders the key. The output <code>name</code> does not appear in status.</p>
 <h2 id="from-a-single-resource"><code>from</code>: a single resource<a class="headerlink" href="#from-a-single-resource" title="Permanent link">#</a></h2>
 <p><code>from</code> selects one rendered resource by GVK and <code>name</code> (a JSONPath template evaluated against the Template context — <code>{"parameters": {...}, "instance": {name, namespace, labels}}</code>). <code>namespace</code> is also a JSONPath template and defaults to the <code>TemplateInstance</code>'s namespace. The named resource must exist in <code>status.renderedResources</code> at extraction time.</p>
 <h2 id="fromall-every-resource-of-a-kind"><code>fromAll</code>: every resource of a kind<a class="headerlink" href="#fromall-every-resource-of-a-kind" title="Permanent link">#</a></h2>
@@ -3679,9 +3679,9 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <p>gives:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">status</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">outputs</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">deployments</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">team-a/web</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> available</span><span class="p">:</span><span class="w"> </span><span class="s">"3"</span><span class="w"> </span><span class="p p-Indicator">}</span>
-<span class="w">      </span><span class="nt">team-a/worker</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> available</span><span class="p">:</span><span class="w"> </span><span class="s">"1"</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<span class="w">    </span><span class="nt">available</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">team-a/web</span><span class="p">:</span><span class="w"> </span><span class="s">"3"</span>
+<span class="w">      </span><span class="nt">team-a/worker</span><span class="p">:</span><span class="w"> </span><span class="s">"1"</span>
 </code></pre></div>
 <p><code>keyTemplate</code> is optional for <code>fromAll</code> (it defaults to <code>{.metadata.namespace}/{.metadata.name}</code> for namespaced kinds and <code>{.metadata.name}</code> for cluster-scoped), and optional for single mode (defaults to <code>{.metadata.name}</code>).</p>
 <p>This is the pattern a provider uses to answer "is every rendered resource healthy?" from one object — for example aggregating the status of child resources a parent <code>TemplateInstance</code> emits.</p>

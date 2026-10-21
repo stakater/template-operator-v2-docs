@@ -3540,6 +3540,12 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">  </span><span class="nt">parameters</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">name</span>
 <span class="w">      </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">exposeInStatus</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">   </span><span class="c1"># the output source name below reads it</span>
+<span class="w">  </span><span class="nt">targetNamespaces</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">explicit</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">allow</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">literal</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consumer-a</span>
 <span class="w">  </span><span class="nt">gotemplate</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <span class="w">    </span><span class="no">apiVersion: v1</span>
 <span class="w">    </span><span class="no">kind: Service</span>
@@ -3563,12 +3569,27 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">clusterIP</span>
 <span class="w">          </span><span class="nt">jsonPath</span><span class="p">:</span><span class="w"> </span><span class="s">"{.spec.clusterIP}"</span>
 </code></pre></div>
-<p>Once the cloud assigns an address, it appears on the instance:</p>
-<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>templateinstance<span class="w"> </span>edge-service<span class="w"> </span>-n<span class="w"> </span>consumer-a<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.status.outputs.endpoint}'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
-<span class="c1"># { "ip": "203.0.113.7", "clusterIP": "10.96.12.34" }</span>
+<p><code>exposeInStatus</code> matters here: under the default <code>sync.mode: off</code>, the instance freezes after its first apply and resolves <code>from.name</code> from the values recorded in <code>status.resolvedParameters</code> (see <a href="../concepts/sync.html">Sync</a>).</p>
+<p>Anna binds it:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">templates.v2.stakater.com/v2alpha1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TemplateInstance</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">edge-service</span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consumer-a</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">templateRef</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">edge-service</span>
+<span class="w">    </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">provider</span>
+<span class="w">  </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">name</span>
+<span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">edge</span>
 </code></pre></div>
-<p>A field whose JSONPath matches nothing yet (the IP before the cloud assigns it) simply stays unresolved and is reflected on the <code>OutputsResolved</code> condition — it does not fail the instance.</p>
+<p>Once the cloud assigns an address, it appears on the instance, keyed by the <code>Service</code> name:</p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>templateinstance<span class="w"> </span>edge-service<span class="w"> </span>-n<span class="w"> </span>consumer-a<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.status.outputs}'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
+<span class="c1"># { "clusterIP": { "edge": "10.96.12.34" }, "ip": { "edge": "[\"203.0.113.7\"]" } }</span>
+</code></pre></div>
+<p>Until the cloud assigns an address, <code>ip</code> resolves to <code>"[]"</code> (an empty list). It does not fail the instance.</p>
 <h2 id="scenario-2-roll-up-the-health-of-many-rendered-resources">Scenario 2: roll up the health of many rendered resources<a class="headerlink" href="#scenario-2-roll-up-the-health-of-many-rendered-resources" title="Permanent link">#</a></h2>
 <p>When one instance renders several resources of a kind, <code>fromAll</code> keys an entry per resource, so the instance's status answers "is every one healthy?":</p>
 <div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">outputs</span><span class="p">:</span>
@@ -3581,8 +3602,8 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">available</span>
 <span class="w">          </span><span class="nt">jsonPath</span><span class="p">:</span><span class="w"> </span><span class="s">"{.status.availableReplicas}"</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>templateinstance<span class="w"> </span>&lt;name&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;ns&gt;<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.status.outputs.deployments}'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
-<span class="c1"># { "web": { "available": "3" }, "worker": { "available": "1" } }</span>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>templateinstance<span class="w"> </span>&lt;name&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;ns&gt;<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.status.outputs.available}'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
+<span class="c1"># { "web": "3", "worker": "1" }</span>
 </code></pre></div>
 <h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">#</a></h2>
 <ul>

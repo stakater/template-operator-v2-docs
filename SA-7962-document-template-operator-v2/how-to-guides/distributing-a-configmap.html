@@ -3524,7 +3524,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">      </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">gotemplate</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <span class="w">    </span><span class="no">{{- range $ns := .parameters.namespaces }}</span>
-<span class="w">    </span><span class="no">{{- if hasKey (default dict $ns.metadata.labels) "team" }}</span>
+<span class="w">    </span><span class="no">{{- if and (hasKey (default dict (index $ns.metadata "labels")) "team") (not (hasKey $ns.metadata "deletionTimestamp")) }}</span>
 <span class="w">    </span><span class="no">---</span>
 <span class="w">    </span><span class="no">apiVersion: v1</span>
 <span class="w">    </span><span class="no">kind: ConfigMap</span>
@@ -3532,7 +3532,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">      </span><span class="no">name: trusted-ca</span>
 <span class="w">      </span><span class="no">namespace: {{ $ns.metadata.name }}</span>
 <span class="w">    </span><span class="no">data:</span>
-<span class="w">      </span><span class="no">ca.crt: {{ .parameters.caBundle | quote }}</span>
+<span class="w">      </span><span class="no">ca.crt: {{ $.parameters.caBundle | quote }}</span>
 <span class="w">    </span><span class="no">{{- end }}</span>
 <span class="w">    </span><span class="no">{{- end }}</span>
 <span class="w">  </span><span class="nt">sync</span><span class="p">:</span>
@@ -3563,6 +3563,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">          </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Namespace</span>
 <span class="w">          </span><span class="nt">jsonPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.items</span>
 </code></pre></div>
+<p>Inside <code>range</code>, <code>.</code> is the current namespace, so the template reads the bundle through <code>$.parameters</code>. The <code>deletionTimestamp</code> check skips a namespace that is being deleted, so that namespace can finish its deletion.</p>
 <p>Update <code>ca-bundle</code> and every <code>trusted-ca</code> copy is re-rendered on the next reconcile.</p>
 <div class="admonition warning">
 <p class="admonition-title">Don't copy Secret material into ConfigMaps</p>

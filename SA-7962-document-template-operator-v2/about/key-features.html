@@ -3660,7 +3660,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <li><code>HTTP</code>/<code>HTTPS</code> repositories: <code>url: https://charts.example.com</code></li>
 <li>OCI registries: <code>url: oci://ghcr.io/org/charts</code></li>
 </ul>
-<p>Both Helm v3 and v4 SDKs are bundled. Pick with <code>spec.helm.version: v3</code> or <code>v4</code>. When omitted, <code>v4</code> is the default. Optional <code>spec.helm.valuesTemplate</code> is itself a Go template that, after rendering, is parsed as YAML and merged over the chart's default values.</p>
+<p>Both Helm v3 and v4 SDKs are bundled. Pick with <code>spec.helm.version: v3</code> or <code>v4</code>. When omitted, <code>v3</code> is the default. Optional <code>spec.helm.valuesTemplate</code> is itself a Go template that, after rendering, is parsed as YAML and merged over the chart's default values.</p>
 <p>Private repositories are supported via <code>spec.helm.chart.repository.auth.secretRef</code>, which references a <code>Secret</code> in the <strong>Template's</strong> namespace (not the consumer's).</p>
 <h2 id="available-data">Available data<a class="headerlink" href="#available-data" title="Permanent link">#</a></h2>
 <p>Both engines see the same context object:</p>
@@ -3700,7 +3700,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </tr>
 </tbody>
 </table>
-<p><code>objectFieldRef</code> returns a scalar in GET mode; it always returns a list in LIST mode so templates can <code>{{range}}</code> safely. The operator dynamically watches every resource referenced by <code>valueFrom</code>, and re-reconciles the <code>TemplateInstance</code> when the source changes.</p>
+<p><code>objectFieldRef</code> returns a scalar in GET mode; it always returns a list in LIST mode so templates can <code>{{range}}</code> safely. With <code>sync.mode: revert</code> or <code>strict</code>, the operator dynamically watches every resource referenced by <code>valueFrom</code>, and re-reconciles the <code>TemplateInstance</code> when the source changes.</p>
 <p>A <code>defaultValue</code> may be set on each <code>TemplateInstance</code> parameter; it is used only when paired with <code>valueFrom</code>, and applies whenever the <code>valueFrom</code> resolution fails (missing resource, missing key, JSONPath error, and so on).</p>
 <h2 id="target-namespace-control">Target namespace control<a class="headerlink" href="#target-namespace-control" title="Permanent link">#</a></h2>
 <p><code>Template.spec.targetNamespaces</code> decides which consumer namespaces are allowed to instantiate the <code>Template</code>:</p>

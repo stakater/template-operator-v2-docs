@@ -3621,7 +3621,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <ul>
 <li>You want one or two resources, not a full release.</li>
 <li>The template is short enough to read inline in the <code>Template</code> YAML.</li>
-<li>You don't need conditional sub-charts or release-level lifecycle hooks.</li>
+<li>You don't need conditional sub-charts.</li>
 <li>You want the operator's deletion to cleanly remove every rendered resource (Helm release state isn't managed; gotemplate output is tracked one resource at a time).</li>
 </ul>
 <h2 id="syntax">Syntax<a class="headerlink" href="#syntax" title="Permanent link">#</a></h2>
@@ -3666,9 +3666,10 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <h2 id="missing-keys-are-an-error">Missing keys are an error<a class="headerlink" href="#missing-keys-are-an-error" title="Permanent link">#</a></h2>
 <p>The template is executed with Go's <code>missingkey=error</code> option, so reading a map key that does not exist fails the whole render rather than emitting <code>&lt;no value&gt;</code>. This bites most often when reading optional fields off a resource pulled in through an <a href="parameters.html"><code>objectFieldRef</code></a> parameter — for example <code>{{ $obj.metadata.labels.team }}</code> on an object that has no <code>labels</code>, or no <code>team</code> label, aborts the render.</p>
 <p>Read optional keys defensively instead of as struct fields:</p>
-<div class="highlight"><pre><span></span><code>{{- $labels := default dict $obj.metadata.labels }}   {{/* nil-safe */}}
+<div class="highlight"><pre><span></span><code>{{- $labels := default dict (index $obj.metadata "labels") }}   {{/* nil-safe */}}
 {{- if hasKey $labels "team" }}{{ index $labels "team" }}{{ end }}
 </code></pre></div>
+<p><code>index</code> returns nothing for a missing key, where <code>$obj.metadata.labels</code> fails.</p>
 <p><code>.parameters.&lt;name&gt;</code> itself is always present (an unresolved required parameter fails earlier, at parameter resolution) — this applies to keys you read <em>within</em> a parameter's value.</p>
 <h2 id="multi-document-output">Multi-document output<a class="headerlink" href="#multi-document-output" title="Permanent link">#</a></h2>
 <p>A single <code>spec.gotemplate</code> can emit any number of Kubernetes manifests separated by YAML document markers (<code>---</code>):</p>

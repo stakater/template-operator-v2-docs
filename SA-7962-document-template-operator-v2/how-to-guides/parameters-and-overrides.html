@@ -3585,9 +3585,11 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">replicas</span>
 <span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">"2"</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">image</span>
-<span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/stakater/app:latest</span>
+<span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx:latest</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">env</span>
 <span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">production</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dbPassword</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ingressIP</span>
 <span class="w">  </span><span class="nt">gotemplate</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <span class="w">    </span><span class="no">apiVersion: apps/v1</span>
 <span class="w">    </span><span class="no">kind: Deployment</span>
@@ -3595,7 +3597,13 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">      </span><span class="no">name: app</span>
 <span class="w">    </span><span class="no">spec:</span>
 <span class="w">      </span><span class="no">replicas: {{ .parameters.replicas }}</span>
+<span class="w">      </span><span class="no">selector:</span>
+<span class="w">        </span><span class="no">matchLabels:</span>
+<span class="w">          </span><span class="no">app: app</span>
 <span class="w">      </span><span class="no">template:</span>
+<span class="w">        </span><span class="no">metadata:</span>
+<span class="w">          </span><span class="no">labels:</span>
+<span class="w">            </span><span class="no">app: app</span>
 <span class="w">        </span><span class="no">spec:</span>
 <span class="w">          </span><span class="no">containers:</span>
 <span class="w">            </span><span class="no">- name: app</span>
@@ -3603,6 +3611,15 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">              </span><span class="no">env:</span>
 <span class="w">                </span><span class="no">- name: APP_ENV</span>
 <span class="w">                  </span><span class="no">value: {{ .parameters.env }}</span>
+<span class="w">                </span><span class="no">- name: DB_PASSWORD</span>
+<span class="w">                  </span><span class="no">value: {{ .parameters.dbPassword | quote }}</span>
+<span class="w">                </span><span class="no">- name: INGRESS_IP</span>
+<span class="w">                  </span><span class="no">value: {{ .parameters.ingressIP | quote }}</span>
+<span class="w">  </span><span class="nt">targetNamespaces</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">explicit</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">allow</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">literal</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">team-a</span>
 </code></pre></div>
 <p>Anna's <code>TemplateInstance</code> keeps the defaults except for the image:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">templates.v2.stakater.com/v2alpha1</span>
@@ -3616,9 +3633,9 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">    </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">provider</span>
 <span class="w">  </span><span class="nt">parameters</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">image</span>
-<span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/stakater/app:v1.4.0</span>
+<span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx:1.27</span>
 </code></pre></div>
-<p><code>status.resolvedParameters</code> records that <code>image</code> was overridden and the other two used the <code>Template</code>'s defaults.</p>
+<p><code>status.resolvedParameters</code> lists each parameter by name. It does not record whether a literal value came from the instance or from the <code>Template</code> default; it shows the value only for parameters with <code>exposeInStatus: true</code>.</p>
 <h2 id="scenario-2-read-a-database-password-from-a-secret">Scenario 2: read a database password from a Secret<a class="headerlink" href="#scenario-2-read-a-database-password-from-a-secret" title="Permanent link">#</a></h2>
 <p>Anna's namespace already has a <code>db-credentials</code> Secret. She wants the <code>TemplateInstance</code> to read the password at render time so it doesn't appear in YAML or git history.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
@@ -3646,9 +3663,9 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">db-credentials</span>
 <span class="w">          </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">password</span>
 </code></pre></div>
-<p>The <code>Secret</code> value is base64-decoded automatically. The operator subscribes to the <code>Secret</code> and re-reconciles the <code>TemplateInstance</code> whenever the password is rotated.</p>
+<p>The <code>Secret</code> value is base64-decoded automatically. With <code>sync.mode: revert</code> or <code>strict</code>, the operator subscribes to the <code>Secret</code> and re-reconciles the <code>TemplateInstance</code> whenever the password is rotated. This <code>Template</code> uses the default <code>sync.mode: off</code>, so a rotation after the first clean apply is not applied.</p>
 <h2 id="scenario-3-read-the-ingress-ip-via-objectfieldref-get">Scenario 3: read the ingress IP via <code>objectFieldRef</code> (GET)<a class="headerlink" href="#scenario-3-read-the-ingress-ip-via-objectfieldref-get" title="Permanent link">#</a></h2>
-<p>Anna wants the rendered <code>ConfigMap</code> to include the load-balancer IP of an existing <code>Ingress</code>. The IP is in the <code>Ingress.status.loadBalancer.ingress[0].ip</code> field.</p>
+<p>Anna wants the rendered <code>Deployment</code> to include the load-balancer IP of an existing <code>Ingress</code>. The IP is in the <code>Ingress.status.loadBalancer.ingress[0].ip</code> field.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">templates.v2.stakater.com/v2alpha1</span>
 <span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TemplateInstance</span>
 <span class="nt">metadata</span><span class="p">:</span>

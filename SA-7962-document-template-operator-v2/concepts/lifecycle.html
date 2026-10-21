@@ -3798,7 +3798,11 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <h2 id="inspecting-failed-cleanups">Inspecting failed cleanups<a class="headerlink" href="#inspecting-failed-cleanups" title="Permanent link">#</a></h2>
 <p>A <code>TemplateInstance</code> whose orphan deletion is retrying reports:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">status</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ready</span>
+<span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Failed</span>
+<span class="w">  </span><span class="nt">conditions</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ready</span>
+<span class="w">      </span><span class="nt">status</span><span class="p">:</span><span class="w"> </span><span class="s">"False"</span>
+<span class="w">      </span><span class="nt">reason</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DisposalFailed</span>
 <span class="w">  </span><span class="nt">renderedResources</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
 <span class="w">      </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ConfigMap</span>
@@ -3810,7 +3814,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">current-config</span>
 <span class="w">      </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">team-a</span>
 </code></pre></div>
-<p>Entries with <code>status: Failed</code> are scheduled for retry on the next reconcile. An empty <code>status</code> indicates a successfully-applied resource.</p>
+<p>Entries with <code>status: Failed</code> are scheduled for retry on the next reconcile, and the instance stays <code>Failed</code> until the retry succeeds. An empty <code>status</code> indicates a successfully-applied resource.</p>
 <h2 id="see-also">See also<a class="headerlink" href="#see-also" title="Permanent link">#</a></h2>
 <ul>
 <li><a href="status.html">Status</a> for what every status field means.</li>

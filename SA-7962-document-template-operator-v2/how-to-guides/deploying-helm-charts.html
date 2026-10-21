@@ -3582,6 +3582,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">provider</span>
 <span class="nt">spec</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">helm</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v4</span><span class="w">   </span><span class="c1"># the default v3 SDK renders this chart's PodDisruptionBudget with the removed policy/v1beta1 API</span>
 <span class="w">    </span><span class="nt">chart</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">repository</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://charts.bitnami.com/bitnami</span>
@@ -3590,6 +3591,8 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">    </span><span class="nt">releaseName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
 <span class="w">    </span><span class="nt">valuesTemplate</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <span class="w">      </span><span class="no">replicaCount: {{ .parameters.replicas }}</span>
+<span class="w">      </span><span class="no">image:</span>
+<span class="w">        </span><span class="no">repository: bitnamilegacy/nginx   # Bitnami moved its versioned images here</span>
 <span class="w">      </span><span class="no">service:</span>
 <span class="w">        </span><span class="no">type: ClusterIP</span>
 <span class="w">  </span><span class="nt">parameters</span><span class="p">:</span>
@@ -3656,7 +3659,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <h2 id="repository-url-rules">Repository URL rules<a class="headerlink" href="#repository-url-rules" title="Permanent link">#</a></h2>
 <ul>
 <li><code>spec.helm.chart.repository.url</code> must match the pattern <code>^(https?|oci)://</code>.</li>
-<li><code>version</code> must follow <a href="https://semver.org"><code>SemVer</code> 2</a>, e.g. <code>1.2.3</code>, <code>v1.2.3</code>, <code>1.2.3-rc.1+meta</code>. Ranges, <code>latest</code>, and floating versions are rejected at admission time.</li>
+<li><code>version</code> must follow <a href="https://semver.org"><code>SemVer</code> 2</a>, e.g. <code>1.2.3</code>, <code>1.2.3-rc.1+meta</code>. Ranges, <code>latest</code>, and floating versions are rejected at admission time. Write the version without a <code>v</code> prefix: the API accepts <code>v1.2.3</code>, but the chart then fails to load.</li>
 </ul>
 <h2 id="status-on-failure">Status on failure<a class="headerlink" href="#status-on-failure" title="Permanent link">#</a></h2>
 <p>If the chart cannot be pulled, the <code>Template</code> reports:</p>

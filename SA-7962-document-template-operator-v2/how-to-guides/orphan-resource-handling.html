@@ -3553,14 +3553,19 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <p>Examples of how the operator handles resources that were rendered last time but not this time. For the cleanup model, ownership metadata, and how failed cleanups are retried, see <a href="../concepts/lifecycle.html">Lifecycle</a>.</p>
 <h2 id="scenario-1-bill-shrinks-a-template">Scenario 1: Bill shrinks a Template<a class="headerlink" href="#scenario-1-bill-shrinks-a-template" title="Permanent link">#</a></h2>
 <p>Bill's <code>Template</code> originally renders a <code>Deployment</code>, a <code>Service</code>, and a <code>ConfigMap</code>. Anna's <code>TemplateInstance</code> has applied all three to <code>team-a</code>.</p>
-<p>Bill updates the <code>Template</code> to drop the <code>ConfigMap</code>. On the next reconcile of Anna's <code>TemplateInstance</code>, the operator applies the two surviving resources and deletes the now-orphaned <code>ConfigMap</code>. Anna does not have to do anything.</p>
+<p>Bill updates the <code>Template</code> to drop the <code>ConfigMap</code>. With <code>sync.mode: revert</code> or <code>strict</code>, on the next reconcile of Anna's <code>TemplateInstance</code>, the operator applies the two surviving resources and deletes the now-orphaned <code>ConfigMap</code>. Anna does not have to do anything.</p>
+<p>Under the default <code>sync.mode: off</code>, the instance is frozen after its first clean apply, so the <code>ConfigMap</code> stays until the mode changes.</p>
 <h2 id="scenario-2-a-bad-template-update-is-rejected-without-losing-resources">Scenario 2: a bad Template update is rejected without losing resources<a class="headerlink" href="#scenario-2-a-bad-template-update-is-rejected-without-losing-resources" title="Permanent link">#</a></h2>
 <p>If Bill ships a <code>Template</code> update whose new render is invalid (broken manifest, unknown CRD, schema error), the operator detects the problem before applying anything. The previously-rendered resources stay in place untouched, and the <code>TemplateInstance</code> reports <code>Phase=Failed</code> with a condition explaining the issue.</p>
 <p>Once Bill fixes the <code>Template</code>, the next reconcile applies the corrected output and cleans up any orphans normally.</p>
 <h2 id="scenario-3-anna-sees-a-failed-cleanup-in-status">Scenario 3: Anna sees a Failed cleanup in status<a class="headerlink" href="#scenario-3-anna-sees-a-failed-cleanup-in-status" title="Permanent link">#</a></h2>
 <p>If the operator can't delete an orphan, for example because another controller's webhook blocks the delete, the orphan is retained in <code>status.renderedResources</code> with <code>status: Failed</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">status</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ready</span>
+<span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Failed</span>
+<span class="w">  </span><span class="nt">conditions</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ready</span>
+<span class="w">      </span><span class="nt">status</span><span class="p">:</span><span class="w"> </span><span class="s">"False"</span>
+<span class="w">      </span><span class="nt">reason</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DisposalFailed</span>
 <span class="w">  </span><span class="nt">renderedResources</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
 <span class="w">      </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ConfigMap</span>

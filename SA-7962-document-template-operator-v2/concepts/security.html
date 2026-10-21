@@ -3689,13 +3689,13 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <td>The <code>ClusterRole</code> and <code>RoleBinding</code>s installed by the chart.</td>
 </tr>
 <tr>
-<td>The drift webhook (strict mode only)</td>
-<td>Unauthorized UPDATE and DELETE on managed resources.</td>
-<td>A <code>ValidatingWebhookConfiguration</code> registered when any <code>Template</code> uses <code>sync.mode: strict</code>.</td>
+<td>The drift webhook</td>
+<td>Unauthorized UPDATE and DELETE on resources rendered by <code>strict</code> <code>Template</code>s.</td>
+<td>A cluster-wide <code>ValidatingWebhookConfiguration</code> that the chart installs.</td>
 </tr>
 </tbody>
 </table>
-<p>The high-level model: <strong>anyone who can write a <code>Template</code> in a provider namespace can render anything the operator's service account can read in that namespace.</strong> Treat write access to a provider namespace as privileged and manage it with RBAC accordingly.</p>
+<p>The high-level model: <strong>anyone who can write a <code>Template</code> in a provider namespace can make the operator write anything its service account can write, and anyone who can create a <code>TemplateInstance</code> can make the operator read anything its service account can read</strong> (a <code>valueFrom</code> source may name any namespace). Treat both rights as privileged and manage them with RBAC and <code>targetNamespaces</code>.</p>
 <h2 id="permissions-that-bypass-enforcement">Permissions that bypass enforcement<a class="headerlink" href="#permissions-that-bypass-enforcement" title="Permanent link">#</a></h2>
 <h3 id="impersonate-on-the-operators-service-account"><code>impersonate</code> on the operator's service account<a class="headerlink" href="#impersonate-on-the-operators-service-account" title="Permanent link">#</a></h3>
 <p>The drift webhook lets the operator's own service account through unconditionally, otherwise the operator's reverts would block themselves. Any subject with <code>impersonate</code> RBAC on the operator's <code>ServiceAccount</code> (or on its user identity) can therefore reach the API server as the operator and bypass the webhook entirely.</p>
@@ -3723,7 +3723,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <p><strong>The RBAC of the service account the operator applies as is the boundary.</strong> Grant it only the namespaces and resource kinds your Templates actually need — that is how you decide where resources may land, and who (by being allowed to author Templates in a provider namespace) can cause those writes. On default chart RBAC the operator can only manage <code>Template</code>s/<code>TemplateInstance</code>s and read <code>Namespace</code>s, so it is inert until you widen it; widen it deliberately and narrowly. This is intended behaviour, not a gap: scope the grant, not the template.</p>
 <div class="admonition note">
 <p class="admonition-title">Per-instance service accounts</p>
-<p>The intended direction is for a <code>TemplateInstance</code> to name a service account the operator <strong>impersonates</strong> when applying, so the <em>consumer's</em> RBAC becomes the boundary and the operator holds no standing write permission. Until that ships, scope the operator's own service account as above.</p>
+<p><code>TemplateInstance.spec.serviceAccountRef</code> names a <code>ServiceAccount</code> in the instance's namespace. The operator <strong>impersonates</strong> it to resolve <code>valueFrom</code> parameters and to watch their sources, so that account's RBAC limits what the instance can read. This needs an <code>impersonate</code> grant on <code>serviceaccounts</code> for the operator, which the chart does not ship. Applies still use the operator's own service account, so scope it as above.</p>
 </div>
 <h3 id="optional-an-extra-guardrail-with-admission-policy">Optional: an extra guardrail with admission policy<a class="headerlink" href="#optional-an-extra-guardrail-with-admission-policy" title="Permanent link">#</a></h3>
 <p>Scoping the operator's RBAC is the primary control. As defence in depth — especially where many Templates share one broadly-permissioned operator — a <code>ValidatingAdmissionPolicy</code> can additionally require that a rendered object's namespace matches its owning <code>TemplateInstance</code> (or an allow-listed namespace). The operator stamps <code>templates.v2.stakater.com/instance-namespace</code> on every rendered object and overwrites any value a template sets, so the policy can trust it:</p>
@@ -3763,7 +3763,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <h2 id="secrets-and-credentials">Secrets and credentials<a class="headerlink" href="#secrets-and-credentials" title="Permanent link">#</a></h2>
 <ul>
 <li>The Helm chart-pull <code>Secret</code> referenced by <code>Template.spec.helm.chart.repository.auth.secretRef</code> lives in the <strong>provider namespace</strong>, never in the consumer namespace. Consumers never need access to registry credentials.</li>
-<li>Parameters resolved through <code>valueFrom.secretKeyRef</code> are read at render time and never written back to the cluster, but the resolved value is passed to the template engine. A template author with access to the provider namespace can render the value into any field of any resource the operator is allowed to create. Treat the right to author a <code>Template</code> as equivalent to the right to read every <code>Secret</code> the operator can list.</li>
+<li>Parameters resolved through <code>valueFrom.secretKeyRef</code> are read at render time and never written back to the cluster, but the resolved value is passed to the template engine. The <code>valueFrom</code> reference is set on the <code>TemplateInstance</code>, and its namespace is not restricted: if the <code>Template</code> writes the parameter into a resource the instance author can read, that author can read any <code>Secret</code> the operator can read. Limit who may instantiate such <code>Template</code>s with <code>targetNamespaces</code>, or set <code>spec.serviceAccountRef</code> on the <code>TemplateInstance</code> so that <code>valueFrom</code> reads use that account's RBAC.</li>
 <li>Parameters marked <code>exposeInStatus: true</code> write their resolved value to <code>status.resolvedParameters[].value</code>. Never set <code>exposeInStatus</code> on a parameter resolved from a <code>Secret</code>.</li>
 </ul>
 <h2 id="see-also">See also<a class="headerlink" href="#see-also" title="Permanent link">#</a></h2>

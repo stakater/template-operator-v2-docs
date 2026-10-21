@@ -3693,7 +3693,8 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">      </span><span class="nt">reason</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Reconciled</span>
 </code></pre></div>
 <h2 id="4-updating">4. Updating<a class="headerlink" href="#4-updating" title="Permanent link">#</a></h2>
-<p>Editing the <code>TemplateInstance</code>'s parameters re-renders. Editing the <code>Template</code> re-enqueues every <code>TemplateInstance</code> that references it. In both cases, resources that were rendered before but not after are deleted.</p>
+<p>With <code>sync.mode: revert</code> or <code>strict</code>, editing the <code>TemplateInstance</code>'s parameters re-renders, and editing the <code>Template</code> re-renders every <code>TemplateInstance</code> that references it. In both cases, resources that were rendered before but not after are deleted.</p>
+<p>This <code>Template</code> uses the default <code>sync.mode: off</code>, so after the first clean apply the instance is frozen and neither edit is applied. See <a href="../concepts/sync.html">Sync</a>.</p>
 <h2 id="5-deleting">5. Deleting<a class="headerlink" href="#5-deleting" title="Permanent link">#</a></h2>
 <div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>-n<span class="w"> </span>team-a<span class="w"> </span>delete<span class="w"> </span>templateinstance<span class="w"> </span>my-app
 </code></pre></div>

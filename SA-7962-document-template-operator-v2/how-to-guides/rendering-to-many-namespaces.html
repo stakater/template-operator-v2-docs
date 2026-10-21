@@ -3588,8 +3588,8 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">      </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">gotemplate</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <span class="w">    </span><span class="no">{{- range $ns := .parameters.namespaces }}</span>
-<span class="w">    </span><span class="no">{{- $labels := default dict $ns.metadata.labels }}</span>
-<span class="w">    </span><span class="no">{{- if hasKey $labels "team" }}</span>
+<span class="w">    </span><span class="no">{{- $labels := default dict (index $ns.metadata "labels") }}</span>
+<span class="w">    </span><span class="no">{{- if and (hasKey $labels "team") (not (hasKey $ns.metadata "deletionTimestamp")) }}</span>
 <span class="w">    </span><span class="no">---</span>
 <span class="w">    </span><span class="no">apiVersion: v1</span>
 <span class="w">    </span><span class="no">kind: ConfigMap</span>
@@ -3605,6 +3605,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">    </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">revert</span>
 </code></pre></div>
 <p>The gotemplate filters in-template with <code>hasKey</code>/<code>index</code> rather than a server-side selector, so the one namespace watch covers every rule you might apply. Reading optional keys defensively matters here — see <a href="../concepts/gotemplate.html#missing-keys-are-an-error">missing keys are an error</a>.</p>
+<p>The <code>deletionTimestamp</code> check skips a namespace that is being deleted. Without it, the rendered <code>ConfigMap</code> keeps the operator's finalizer, and the namespace stays in <code>Terminating</code>.</p>
 <h2 id="2-bind-it-listing-all-namespaces">2. Bind it, listing all namespaces<a class="headerlink" href="#2-bind-it-listing-all-namespaces" title="Permanent link">#</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">templates.v2.stakater.com/v2alpha1</span>
 <span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">TemplateInstance</span>
@@ -3626,7 +3627,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <h2 id="3-watch-it-track-the-cluster">3. Watch it track the cluster<a class="headerlink" href="#3-watch-it-track-the-cluster" title="Permanent link">#</a></h2>
 <div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>label<span class="w"> </span>namespace<span class="w"> </span>team-a<span class="w"> </span><span class="nv">team</span><span class="o">=</span>a
 kubectl<span class="w"> </span>label<span class="w"> </span>namespace<span class="w"> </span>team-b<span class="w"> </span><span class="nv">team</span><span class="o">=</span>b
-kubectl<span class="w"> </span>get<span class="w"> </span>configmap<span class="w"> </span>cluster-info<span class="w"> </span>-A<span class="w">        </span><span class="c1"># one per labelled namespace</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>configmap<span class="w"> </span>-A<span class="w"> </span>--field-selector<span class="w"> </span>metadata.name<span class="o">=</span>cluster-info<span class="w">   </span><span class="c1"># one per labelled namespace</span>
 
 kubectl<span class="w"> </span>create<span class="w"> </span>namespace<span class="w"> </span>team-c<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>kubectl<span class="w"> </span>label<span class="w"> </span>namespace<span class="w"> </span>team-c<span class="w"> </span><span class="nv">team</span><span class="o">=</span>c
 kubectl<span class="w"> </span>get<span class="w"> </span>configmap<span class="w"> </span>cluster-info<span class="w"> </span>-n<span class="w"> </span>team-c<span class="w"> </span><span class="c1"># appears without touching the TemplateInstance</span>

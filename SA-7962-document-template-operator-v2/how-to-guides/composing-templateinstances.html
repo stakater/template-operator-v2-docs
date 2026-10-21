@@ -3593,7 +3593,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">      </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">gotemplate</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <span class="w">    </span><span class="no">{{- range $ns := .parameters.namespaces }}</span>
-<span class="w">    </span><span class="no">{{- if hasKey (default dict $ns.metadata.labels) "team" }}</span>
+<span class="w">    </span><span class="no">{{- if and (hasKey (default dict (index $ns.metadata "labels")) "team") (not (hasKey $ns.metadata "deletionTimestamp")) }}</span>
 <span class="w">    </span><span class="no">---</span>
 <span class="w">    </span><span class="no">apiVersion: templates.v2.stakater.com/v2alpha1</span>
 <span class="w">    </span><span class="no">kind: TemplateInstance</span>
@@ -3622,13 +3622,14 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="w">  </span><span class="nt">sync</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">revert</span>
 </code></pre></div>
-<p>Bind the parent with a LIST of namespaces, exactly as in <a href="rendering-to-many-namespaces.html#2-bind-it-listing-all-namespaces">the fan-out guide</a>. The operator creates a child <code>TemplateInstance</code> per <code>team</code> namespace, each of which renders its <code>ResourceQuota</code>.</p>
+<p>Bind the parent with a LIST of namespaces, exactly as in <a href="rendering-to-many-namespaces.html#2-bind-it-listing-all-namespaces">the fan-out guide</a>. The operator creates a child <code>TemplateInstance</code> per <code>team</code> namespace, each of which renders its <code>ResourceQuota</code>. The <code>deletionTimestamp</code> check drops the child when its namespace is being deleted; without it, the <code>strict</code> child would block the namespace deletion.</p>
 <h2 id="one-place-to-read-health">One place to read health<a class="headerlink" href="#one-place-to-read-health" title="Permanent link">#</a></h2>
 <p>The parent's <a href="../concepts/outputs.html"><code>outputs</code></a> aggregate every child's <code>Ready</code> condition, so a single object answers "is every item reconciled?":</p>
 <div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>templateinstance<span class="w"> </span>namespace-quota-parent<span class="w"> </span>-n<span class="w"> </span>provider<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.status.outputs.children}'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
-<span class="c1"># { "quota-team-a": { "ready": "True" }, "quota-team-b": { "ready": "True" } }</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.status.outputs.ready}'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
+<span class="c1"># { "quota-team-a": "[\"True\"]", "quota-team-b": "[\"True\"]" }</span>
 </code></pre></div>
+<p>The <code>[?(...)]</code> filter is a list query, so each value is a JSON-encoded list.</p>
 <h2 id="naming">Naming<a class="headerlink" href="#naming" title="Permanent link">#</a></h2>
 <p>A child's name is composed from the item (<code>quota-&lt;namespace&gt;</code>). Choose a prefix the parent's own name can never take, so a crafted item value cannot produce a child that collides with the parent instance.</p>
 <h2 id="see-also">See also<a class="headerlink" href="#see-also" title="Permanent link">#</a></h2>

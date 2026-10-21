@@ -2788,6 +2788,17 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </li>
       
         <li class="md-nav__item">
+  <a href="#granting-permissions-to-rendered-kinds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Granting permissions to rendered kinds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#verifying-the-install" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3486,6 +3497,17 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </li>
       
         <li class="md-nav__item">
+  <a href="#granting-permissions-to-rendered-kinds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Granting permissions to rendered kinds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#verifying-the-install" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3534,6 +3556,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <li>A Kubernetes cluster, v1.24 or higher.</li>
 <li><a href="https://helm.sh/docs/intro/install/">Helm</a> v3.x.</li>
 <li><a href="https://kubernetes.io/docs/tasks/tools/">kubectl</a>.</li>
+<li><a href="https://cert-manager.io/docs/installation/">cert-manager</a>, installed before the chart. The chart issues the operator's webhook certificate through it.</li>
 </ul>
 <h2 id="installing-via-helm">Installing via Helm<a class="headerlink" href="#installing-via-helm" title="Permanent link">#</a></h2>
 <p>The Helm chart is published to GitHub Container Registry as an OCI artifact:</p>
@@ -3549,7 +3572,28 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <p>Wait for the controller to come up:</p>
 <div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>template-operator-system<span class="w"> </span>--watch
 </code></pre></div>
-<p>The deployment is named <code>controller-manager</code> and should reach <code>Ready 1/1</code>.</p>
+<p>The deployment is named <code>template-operator-v2-controller-manager</code> and should reach <code>Ready 1/1</code>.</p>
+<h2 id="granting-permissions-to-rendered-kinds">Granting permissions to rendered kinds<a class="headerlink" href="#granting-permissions-to-rendered-kinds" title="Permanent link">#</a></h2>
+<p>The chart's <code>ClusterRole</code> lets the operator manage only its own CRDs and read <code>Namespace</code>s. Before a <code>TemplateInstance</code> can render, grant the operator every kind your <code>Template</code>s render, and every kind a parameter reads through <code>valueFrom</code> (including <code>Secret</code>s and <code>ConfigMap</code>s). Add the rules through <code>rbac.additionalRules</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># values.yaml</span>
+<span class="nt">rbac</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">additionalRules</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiGroups</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">""</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">resources</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">configmaps</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">pods</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">verbs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">get</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">list</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">watch</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">create</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">update</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">patch</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">delete</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiGroups</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">""</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">resources</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">secrets</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">verbs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">get</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">list</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">watch</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiGroups</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">apps</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">resources</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">deployments</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">verbs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">get</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">list</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">watch</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">create</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">update</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">patch</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">delete</span><span class="p p-Indicator">]</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>helm<span class="w"> </span>upgrade<span class="w"> </span>--install<span class="w"> </span>template-operator-v2<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>oci://ghcr.io/stakater/public/charts/template-operator-v2<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--namespace<span class="w"> </span>template-operator-system<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-f<span class="w"> </span>values.yaml
+</code></pre></div>
+<p>Grant only the kinds your <code>Template</code>s need. See <a href="../concepts/security.html#where-rendered-resources-land">Security: where rendered resources land</a>.</p>
 <h2 id="verifying-the-install">Verifying the install<a class="headerlink" href="#verifying-the-install" title="Permanent link">#</a></h2>
 <div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>get<span class="w"> </span>crds<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>templates.v2.stakater.com
 </code></pre></div>
@@ -3558,15 +3602,18 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <span class="go">templateinstances.templates.v2.stakater.com</span>
 </code></pre></div>
 <h2 id="uninstalling">Uninstalling<a class="headerlink" href="#uninstalling" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code>helm<span class="w"> </span>uninstall<span class="w"> </span>template-operator-v2<span class="w"> </span>--namespace<span class="w"> </span>template-operator-system
+<p>Delete the <code>TemplateInstance</code>s and <code>Template</code>s first, while the operator still runs. The operator removes each instance's rendered resources and then its own finalizers:</p>
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>delete<span class="w"> </span>templateinstances.templates.v2.stakater.com<span class="w"> </span>--all<span class="w"> </span>-A
+kubectl<span class="w"> </span>delete<span class="w"> </span>templates.templates.v2.stakater.com<span class="w"> </span>--all<span class="w"> </span>-A
 </code></pre></div>
-<p>The CRDs remain installed by default (Helm does not delete CRDs created by a chart). Remove them manually if you do not plan to reinstall:</p>
-<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>delete<span class="w"> </span>crd<span class="w"> </span>templates.templates.v2.stakater.com
+<p>Then remove the chart. The CRDs remain installed (Helm does not delete CRDs created by a chart); remove them if you do not plan to reinstall:</p>
+<div class="highlight"><pre><span></span><code>helm<span class="w"> </span>uninstall<span class="w"> </span>template-operator-v2<span class="w"> </span>--namespace<span class="w"> </span>template-operator-system
+kubectl<span class="w"> </span>delete<span class="w"> </span>crd<span class="w"> </span>templates.templates.v2.stakater.com
 kubectl<span class="w"> </span>delete<span class="w"> </span>crd<span class="w"> </span>templateinstances.templates.v2.stakater.com
 </code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Deleting CRDs cascades to every <code>Template</code> and <code>TemplateInstance</code> in the cluster, which in turn deletes every resource the operator has rendered. Make sure that's what you want before running these commands.</p>
+<p>If you uninstall the chart before you delete the <code>Template</code>s and <code>TemplateInstance</code>s, the CRD deletes hang: the remaining objects keep their finalizers, and no controller is left to remove them. Install the chart again to let the operator finish the cleanup.</p>
 </div>
 
 

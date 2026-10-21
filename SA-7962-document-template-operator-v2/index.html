@@ -3509,7 +3509,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <li><strong>Parameterize templates</strong> so the same blueprint adapts to each tenant, environment, or use case.</li>
 <li><strong>Govern who can use a template</strong> by letting the platform team decide which namespaces are allowed to consume it.</li>
 <li><strong>Bring your own format</strong>: author templates as inline Go templates with <a href="https://masterminds.github.io/sprig/">Sprig functions</a>, or point at an existing Helm chart from a public or private registry.</li>
-<li><strong>Trust the lifecycle</strong>: when a consumer's needs change, the operator updates and cleans up the resources it created, so nothing is left orphaned.</li>
+<li><strong>Trust the lifecycle</strong>: the operator tracks every resource it creates and removes them when the request is deleted. With drift protection on, it also applies changes and cleans up resources that are no longer rendered.</li>
 <li><strong>Adopt GitOps naturally</strong>, since both the template and the request to use it are plain Kubernetes resources you can keep in Git.</li>
 </ul>
 <p>Template Operator v2 simplifies cluster administration, enhances security, and makes consistent multi-tenancy practical for organizations of any size.</p>

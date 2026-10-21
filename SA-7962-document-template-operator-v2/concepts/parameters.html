@@ -3807,7 +3807,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <ol>
 <li>If the <code>TemplateInstance</code> overrides it, the override is resolved (literal or <code>valueFrom</code>).</li>
 <li>Otherwise the <code>Template</code>'s <code>value</code> default is used.</li>
-<li>If neither exists, resolution fails: <code>ParametersValid=False, Reason=ParameterResolutionFailed</code>.</li>
+<li>If neither exists, the parameter resolves to an empty value (<code>""</code>, or <code>[]</code> / <code>{}</code> for an <code>array</code> / <code>object</code> type). A <code>required</code> parameter without an override fails instead, with <code>ParametersValid=False, Reason=InvalidParameter</code>.</li>
 </ol>
 <p>Resolution is <strong>fail-fast</strong>: if any single parameter can't be resolved, the entire <code>TemplateInstance</code> does not render. Rendering with missing parameter values would produce non-deterministic manifests that are rarely safe to apply.</p>
 <h2 id="provider-side-declarations">Provider-side declarations<a class="headerlink" href="#provider-side-declarations" title="Permanent link">#</a></h2>
@@ -3830,7 +3830,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 </tr>
 <tr>
 <td><code>type</code></td>
-<td>Optional. One of <code>string</code>, <code>number</code>, <code>bool</code>. Validates both the default and any instance override.</td>
+<td>Optional. One of <code>string</code>, <code>number</code>, <code>bool</code>, <code>array</code>, <code>object</code>. Validates both the default and any instance override.</td>
 </tr>
 <tr>
 <td><code>required</code></td>
@@ -3856,10 +3856,11 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <li><code>string</code>: any value is accepted.</li>
 <li><code>number</code>: must parse via Go's <code>strconv.ParseFloat</code> (e.g. <code>"3"</code>, <code>"3.14"</code>, <code>"-2.5e10"</code> are accepted; <code>"three"</code> is rejected).</li>
 <li><code>bool</code>: must parse via <code>strconv.ParseBool</code> (e.g. <code>"true"</code>, <code>"false"</code>, <code>"1"</code>, <code>"0"</code> are accepted; <code>"yes"</code> is rejected).</li>
+<li><code>array</code> / <code>object</code>: the value must be a JSON array / object. A plain string never satisfies them.</li>
 </ul>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
-<p><code>type</code> applies to scalar parameters only. When an <code>objectFieldRef</code> resolves to a list or map, it cannot satisfy a scalar <code>type</code> such as <code>string</code>.</p>
+<p>When an <code>objectFieldRef</code> resolves to a list or map, it cannot satisfy a scalar <code>type</code> such as <code>string</code>. Use <code>array</code> or <code>object</code> for those.</p>
 </div>
 <h3 id="required-semantics"><code>required</code> semantics<a class="headerlink" href="#required-semantics" title="Permanent link">#</a></h3>
 <p>A <code>required: true</code> parameter forces the consumer to override it. Even if the <code>Template</code> has a <code>value</code> default, the default is ignored; the consumer must supply a value.</p>
@@ -3943,7 +3944,7 @@ This documentation is for a pull request deployment and is unreleased, it is onl
 <p>This applies to <code>sync.mode: revert</code> and <code>strict</code> only. With <code>sync.mode: off</code>, the instance freezes after its first clean apply: the parameter watches are released, and source changes no longer propagate — see <a href="sync.html">Sync</a>.</p>
 <p>If the GVK referenced by an <code>objectFieldRef</code> cannot be resolved (for example, a CRD that isn't installed), the operator skips setting up a watch for that source. Parameter resolution will still fail at reconcile time, surfaced as <code>ParametersValid=False, Reason=ParameterResolutionFailed</code>.</p>
 <h2 id="rbac">RBAC<a class="headerlink" href="#rbac" title="Permanent link">#</a></h2>
-<p>The operator's service account needs <code>get</code>, <code>list</code>, and <code>watch</code> on every GVK referenced by <code>objectFieldRef</code>. Standard core resources (<code>Secret</code>, <code>ConfigMap</code>, <code>Namespace</code>) are pre-granted by the chart. Adding new resource kinds to your <code>objectFieldRef</code> set requires granting the operator additional permissions.</p>
+<p>The operator's service account needs <code>get</code>, <code>list</code>, and <code>watch</code> on every GVK referenced by <code>objectFieldRef</code>. The chart grants only <code>Namespace</code> reads: grant every kind referenced by <code>secretKeyRef</code>, <code>configMapKeyRef</code>, or <code>objectFieldRef</code> through the chart's <code>rbac.additionalRules</code>. See <a href="../installation/kubernetes.html#granting-permissions-to-rendered-kinds">Granting permissions to rendered kinds</a>.</p>
 <h2 id="see-also">See also<a class="headerlink" href="#see-also" title="Permanent link">#</a></h2>
 <ul>
 <li><a href="../how-to-guides/parameters-and-overrides.html">Parameters and overrides</a> for examples.</li>

@@ -4155,7 +4155,7 @@ kubectl<span class="w"> </span>describe<span class="w"> </span>templateinstance<
 kubectl<span class="w"> </span>get<span class="w"> </span>events<span class="w"> </span>-n<span class="w"> </span>&lt;namespace&gt;<span class="w"> </span>--field-selector<span class="w"> </span>involvedObject.name<span class="o">=</span>&lt;name&gt;
 
 <span class="c1"># Controller logs</span>
-kubectl<span class="w"> </span>logs<span class="w"> </span>-n<span class="w"> </span>template-operator-system<span class="w"> </span>deploy/controller-manager
+kubectl<span class="w"> </span>logs<span class="w"> </span>-n<span class="w"> </span>template-operator-system<span class="w"> </span>deploy/template-operator-v2-controller-manager
 
 <span class="c1"># Resources owned by a TemplateInstance (across all GVKs)</span>
 kubectl<span class="w"> </span>get<span class="w"> </span>&lt;kind&gt;<span class="w"> </span>-A<span class="w"> </span>-l<span class="w"> </span>templates.v2.stakater.com/instance-uid<span class="o">=</span>&lt;uid&gt;
@@ -4219,8 +4219,8 @@ kubectl<span class="w"> </span>get<span class="w"> </span>&lt;kind&gt;<span clas
 <p><strong>Cause</strong>: the validating webhook rejects UPDATE/DELETE on managed resources except for the operator itself and for fields listed in <code>sync.ignoreFields</code>.</p>
 <p><strong>Resolution</strong>: add the field path to <code>sync.ignoreFields</code> on the <code>Template</code>. The next reconcile updates the webhook's view.</p>
 <h3 id="synced-condition-is-missing"><code>Synced</code> condition is missing<a class="headerlink" href="#synced-condition-is-missing" title="Permanent link">#</a></h3>
-<p><strong>Cause</strong>: <code>Synced</code> is only published when <code>Template.spec.sync.mode</code> is <code>revert</code> or <code>strict</code>. If you expect drift protection and don't see it, the mode is <code>off</code>.</p>
-<p><strong>Resolution</strong>: set <code>spec.sync.mode</code> to <code>revert</code> or <code>strict</code> on the <code>Template</code>. For <code>strict</code>, cert-manager must be installed on the cluster, since the webhook needs TLS.</p>
+<p><strong>Cause</strong>: <code>Synced=True</code> is only published when <code>Template.spec.sync.mode</code> is <code>revert</code> or <code>strict</code>. Under <code>off</code>, an applied instance shows <code>Synced=False</code> with reason <code>Frozen</code>.</p>
+<p><strong>Resolution</strong>: set <code>spec.sync.mode</code> to <code>revert</code> or <code>strict</code> on the <code>Template</code>.</p>
 <h3 id="external-edits-keep-being-reverted-in-revert-mode">External edits keep being reverted in <code>revert</code> mode<a class="headerlink" href="#external-edits-keep-being-reverted-in-revert-mode" title="Permanent link">#</a></h3>
 <p>This is the intended behavior. The operator re-applies the rendered output on every reconcile.</p>
 <p><strong>Resolution</strong>: if a field should be edited freely, add it to <code>sync.ignoreFields</code>.</p>
@@ -4230,7 +4230,7 @@ kubectl<span class="w"> </span>get<span class="w"> </span>&lt;kind&gt;<span clas
 <p><strong>Resolution</strong>: compare <code>status.observedGeneration</code> to <code>metadata.generation</code>. If they don't converge, check the controller logs for repeated <code>failed to ...</code> errors with the same text. <code>Failed to set up parameter watches</code> is non-fatal but means external changes to that source won't trigger re-reconciliation.</p>
 <h3 id="render-uses-stale-parameter-values">Render uses stale parameter values<a class="headerlink" href="#render-uses-stale-parameter-values" title="Permanent link">#</a></h3>
 <p><strong>Cause</strong>: a <code>Secret</code> or <code>ConfigMap</code> change isn't being picked up.</p>
-<p><strong>Resolution</strong>: confirm the operator's RBAC includes <code>get</code>/<code>list</code>/<code>watch</code> on the GVK in the relevant namespace. For an <code>objectFieldRef</code> on a CRD, confirm the CRD is installed. To force an immediate reconcile:</p>
+<p><strong>Resolution</strong>: check the <code>Template</code>'s <code>sync.mode</code> first. Under <code>off</code>, the instance is frozen after its first clean apply and ignores source changes (<code>Synced=False</code>, reason <code>Frozen</code>); set the mode to <code>revert</code> or <code>strict</code> to apply them. Otherwise, confirm the operator's RBAC includes <code>get</code>/<code>list</code>/<code>watch</code> on the GVK in the relevant namespace. For an <code>objectFieldRef</code> on a CRD, confirm the CRD is installed. To force an immediate reconcile:</p>
 <div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>annotate<span class="w"> </span>templateinstance<span class="w"> </span>&lt;name&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;namespace&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>reconcile.stakater.com/timestamp<span class="o">=</span><span class="s2">"</span><span class="k">$(</span>date<span class="w"> </span>-Iseconds<span class="k">)</span><span class="s2">"</span><span class="w"> </span>--overwrite
 </code></pre></div>
@@ -4245,7 +4245,7 @@ kubectl<span class="w"> </span>get<span class="w"> </span>&lt;kind&gt;<span clas
 <div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>annotate<span class="w"> </span>templateinstance<span class="w"> </span>&lt;name&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;namespace&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>reconcile.stakater.com/timestamp<span class="o">=</span><span class="s2">"</span><span class="k">$(</span>date<span class="w"> </span>-Iseconds<span class="k">)</span><span class="s2">"</span><span class="w"> </span>--overwrite
 </code></pre></div>
-<p>Annotation changes are part of the controller's predicate set, so this re-enqueues the instance without changing its spec.</p>
+<p>Annotation changes are part of the controller's predicate set, so this re-enqueues the instance without changing its spec. It does not re-apply an instance that is frozen under <code>sync.mode: off</code>.</p>
 <h3 id="strip-a-stuck-finalizer-last-resort">Strip a stuck finalizer (last resort)<a class="headerlink" href="#strip-a-stuck-finalizer-last-resort" title="Permanent link">#</a></h3>
 <p>If the operator cannot finish cleanup and you have confirmed there's no other way forward:</p>
 <div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>patch<span class="w"> </span>&lt;kind&gt;<span class="w"> </span>&lt;name&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;ns&gt;<span class="w"> </span><span class="se">\</span>
@@ -4258,14 +4258,14 @@ kubectl<span class="w"> </span>get<span class="w"> </span>&lt;kind&gt;<span clas
 <h2 id="reporting-a-bug">Reporting a bug<a class="headerlink" href="#reporting-a-bug" title="Permanent link">#</a></h2>
 <p>When opening an issue, attach:</p>
 <ul>
-<li>Operator version (<code>kubectl get deploy controller-manager -n template-operator-system -o jsonpath='{.spec.template.spec.containers[0].image}'</code>).</li>
+<li>Operator version (<code>kubectl get deploy template-operator-v2-controller-manager -n template-operator-system -o jsonpath='{.spec.template.spec.containers[0].image}'</code>).</li>
 <li>Kubernetes version (<code>kubectl version --short</code>).</li>
 <li>The full <code>Template</code> and <code>TemplateInstance</code> YAMLs (redact secrets).</li>
 <li>The <code>status</code> of both CRs at the time of the failure.</li>
 <li>Controller logs from around the time of the failure.</li>
 <li>Any events for the affected resources (<code>kubectl get events -n &lt;namespace&gt;</code>).</li>
 </ul>
-<p>File the report at the <a href="https://github.com/stakater-ab/template-operator-v2/issues">template-operator-v2 issues page</a>.</p>
+<p>Raise the report through <a href="https://support.stakater.com/">Stakater Support</a>.</p>
 
 
 
