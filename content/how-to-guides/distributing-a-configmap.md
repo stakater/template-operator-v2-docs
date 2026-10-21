@@ -24,7 +24,7 @@ spec:
       required: true
   gotemplate: |
     {{- range $ns := .parameters.namespaces }}
-    {{- if hasKey (default dict $ns.metadata.labels) "team" }}
+    {{- if and (hasKey (default dict (index $ns.metadata "labels")) "team") (not (hasKey $ns.metadata "deletionTimestamp")) }}
     ---
     apiVersion: v1
     kind: ConfigMap
@@ -32,7 +32,7 @@ spec:
       name: trusted-ca
       namespace: {{ $ns.metadata.name }}
     data:
-      ca.crt: {{ .parameters.caBundle | quote }}
+      ca.crt: {{ $.parameters.caBundle | quote }}
     {{- end }}
     {{- end }}
   sync:
@@ -65,6 +65,8 @@ spec:
           kind: Namespace
           jsonPath: .items
 ```
+
+Inside `range`, `.` is the current namespace, so the template reads the bundle through `$.parameters`. The `deletionTimestamp` check skips a namespace that is being deleted, so that namespace can finish its deletion.
 
 Update `ca-bundle` and every `trusted-ca` copy is re-rendered on the next reconcile.
 

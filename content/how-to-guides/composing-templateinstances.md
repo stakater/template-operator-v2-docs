@@ -51,7 +51,7 @@ spec:
       required: true
   gotemplate: |
     {{- range $ns := .parameters.namespaces }}
-    {{- if hasKey (default dict $ns.metadata.labels) "team" }}
+    {{- if and (hasKey (default dict (index $ns.metadata "labels")) "team") (not (hasKey $ns.metadata "deletionTimestamp")) }}
     ---
     apiVersion: templates.v2.stakater.com/v2alpha1
     kind: TemplateInstance
@@ -81,7 +81,7 @@ spec:
     mode: revert
 ```
 
-Bind the parent with a LIST of namespaces, exactly as in [the fan-out guide](./rendering-to-many-namespaces.md#2-bind-it-listing-all-namespaces). The operator creates a child `TemplateInstance` per `team` namespace, each of which renders its `ResourceQuota`.
+Bind the parent with a LIST of namespaces, exactly as in [the fan-out guide](./rendering-to-many-namespaces.md#2-bind-it-listing-all-namespaces). The operator creates a child `TemplateInstance` per `team` namespace, each of which renders its `ResourceQuota`. The `deletionTimestamp` check drops the child when its namespace is being deleted; without it, the `strict` child would block the namespace deletion.
 
 ## One place to read health
 
@@ -89,9 +89,11 @@ The parent's [`outputs`](../concepts/outputs.md) aggregate every child's `Ready`
 
 ```bash
 kubectl get templateinstance namespace-quota-parent -n provider \
-  -o jsonpath='{.status.outputs.children}' | jq .
-# { "quota-team-a": { "ready": "True" }, "quota-team-b": { "ready": "True" } }
+  -o jsonpath='{.status.outputs.ready}' | jq .
+# { "quota-team-a": "[\"True\"]", "quota-team-b": "[\"True\"]" }
 ```
+
+The `[?(...)]` filter is a list query, so each value is a JSON-encoded list.
 
 ## Naming
 

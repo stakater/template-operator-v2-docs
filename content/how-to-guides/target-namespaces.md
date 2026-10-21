@@ -38,7 +38,7 @@ spec:
         kind: tenant
 ```
 
-The operator reads each consumer namespace's labels at admission time. Adding the label to a new namespace immediately makes it eligible; removing the label causes `TargetNamespaceAllowed` to flip to `False` on the next reconcile of any `TemplateInstance` in that namespace.
+The operator reads the consumer namespace's labels when it reconciles a `TemplateInstance`. After you add the label, a refused instance is admitted on its next retry. Removing the label does not affect an instance that is already applied until that instance reconciles again; under `sync.mode: off` it is frozen and is not checked again.
 
 ## Scenario 3: combine explicit and label-based access
 

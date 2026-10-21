@@ -9,9 +9,9 @@ Template Operator v2 runs as a single in-cluster controller that renders and app
 | The provider namespace | Who can publish a `Template` (and therefore expose anything readable by the operator's service account in that namespace). | Standard Kubernetes RBAC on the provider namespace. |
 | `targetNamespaces` on each `Template` | Which consumer namespaces are allowed to instantiate the `Template`. | The operator's `TargetNamespaceAllowed` admission check during reconcile. |
 | The operator's service account | What the operator itself can read, list, watch, and apply across the cluster. | The `ClusterRole` and `RoleBinding`s installed by the chart. |
-| The drift webhook (strict mode only) | Unauthorized UPDATE and DELETE on managed resources. | A `ValidatingWebhookConfiguration` registered when any `Template` uses `sync.mode: strict`. |
+| The drift webhook | Unauthorized UPDATE and DELETE on resources rendered by `strict` `Template`s. | A cluster-wide `ValidatingWebhookConfiguration` that the chart installs. |
 
-The high-level model: **anyone who can write a `Template` in a provider namespace can render anything the operator's service account can read in that namespace.** Treat write access to a provider namespace as privileged and manage it with RBAC accordingly.
+The high-level model: **anyone who can write a `Template` in a provider namespace can make the operator write anything its service account can write, and anyone who can create a `TemplateInstance` can make the operator read anything its service account can read** (a `valueFrom` source may name any namespace). Treat both rights as privileged and manage them with RBAC and `targetNamespaces`.
 
 ## Permissions that bypass enforcement
 
@@ -53,7 +53,7 @@ Both paths are documented in [Resource adoption](./lifecycle.md#resource-adoptio
 **The RBAC of the service account the operator applies as is the boundary.** Grant it only the namespaces and resource kinds your Templates actually need — that is how you decide where resources may land, and who (by being allowed to author Templates in a provider namespace) can cause those writes. On default chart RBAC the operator can only manage `Template`s/`TemplateInstance`s and read `Namespace`s, so it is inert until you widen it; widen it deliberately and narrowly. This is intended behaviour, not a gap: scope the grant, not the template.
 
 !!! note "Per-instance service accounts"
-    The intended direction is for a `TemplateInstance` to name a service account the operator **impersonates** when applying, so the *consumer's* RBAC becomes the boundary and the operator holds no standing write permission. Until that ships, scope the operator's own service account as above.
+    `TemplateInstance.spec.serviceAccountRef` names a `ServiceAccount` in the instance's namespace. The operator **impersonates** it to resolve `valueFrom` parameters and to watch their sources, so that account's RBAC limits what the instance can read. This needs an `impersonate` grant on `serviceaccounts` for the operator, which the chart does not ship. Applies still use the operator's own service account, so scope it as above.
 
 ### Optional: an extra guardrail with admission policy
 
@@ -97,7 +97,7 @@ spec:
 ## Secrets and credentials
 
 - The Helm chart-pull `Secret` referenced by `Template.spec.helm.chart.repository.auth.secretRef` lives in the **provider namespace**, never in the consumer namespace. Consumers never need access to registry credentials.
-- Parameters resolved through `valueFrom.secretKeyRef` are read at render time and never written back to the cluster, but the resolved value is passed to the template engine. A template author with access to the provider namespace can render the value into any field of any resource the operator is allowed to create. Treat the right to author a `Template` as equivalent to the right to read every `Secret` the operator can list.
+- Parameters resolved through `valueFrom.secretKeyRef` are read at render time and never written back to the cluster, but the resolved value is passed to the template engine. The `valueFrom` reference is set on the `TemplateInstance`, and its namespace is not restricted: if the `Template` writes the parameter into a resource the instance author can read, that author can read any `Secret` the operator can read. Limit who may instantiate such `Template`s with `targetNamespaces`, or set `spec.serviceAccountRef` on the `TemplateInstance` so that `valueFrom` reads use that account's RBAC.
 - Parameters marked `exposeInStatus: true` write their resolved value to `status.resolvedParameters[].value`. Never set `exposeInStatus` on a parameter resolved from a `Secret`.
 
 ## See also

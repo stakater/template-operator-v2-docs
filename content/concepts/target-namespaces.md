@@ -106,7 +106,7 @@ status:
       reason: NamespaceNotPermitted
 ```
 
-The operator does not retry on a fixed interval; reconciliation is triggered when the `Template` changes, the `TemplateInstance` changes, or (in selector mode) the consumer namespace's labels change. To resolve, either widen the `Template`'s policy to include the consumer namespace, or move the `TemplateInstance` to a namespace the policy already permits.
+The operator retries a refused instance after an increasing delay, and also reconciles it when the `Template` or the `TemplateInstance` changes. A label change on the consumer namespace does not trigger a reconcile by itself, and an instance that is already applied is not checked again until it reconciles (under `sync.mode: off` it is frozen). To resolve, either widen the `Template`'s policy to include the consumer namespace, or move the `TemplateInstance` to a namespace the policy already permits.
 
 ## RBAC required
 

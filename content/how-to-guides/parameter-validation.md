@@ -6,7 +6,7 @@
 
 | Field | Type | Default | Purpose |
 |-------|------|---------|---------|
-| `type` | enum: `string`, `number`, `bool` | unset | Validate that the literal default and any instance override parse to the declared type. |
+| `type` | enum: `string`, `number`, `bool`, `array`, `object` | unset | Validate that the literal default and any instance override parse to the declared type. |
 | `required` | bool | `false` | When `true`, the consuming `TemplateInstance` MUST provide a value (regardless of any `Template` default). |
 | `disableOverride` | bool | `false` | When `true`, the consuming `TemplateInstance` MUST NOT supply its own value for this parameter. |
 | `exposeInStatus` | bool | `false` | When `true`, the resolved value is written to `status.resolvedParameters[].value` for inspection. |
@@ -15,7 +15,7 @@ CRD-level validation rejects the conflicting combination:
 
 ```yaml
 required: true, disableOverride: true   # error: cannot be both required and non-overridable
-```yaml
+```
 
 ## Example: a fully-described template parameter set
 
@@ -47,7 +47,7 @@ spec:
       disableOverride: true     # consumers cannot change the registry
   gotemplate: |
     ...
-```yaml
+```
 
 ## Type checking
 
@@ -68,7 +68,7 @@ status:
       status: "False"
       reason: InvalidParameter
       message: "parameter \"replicas\" type mismatch: expected number, got \"two\""
-```yaml
+```
 
 ## Required parameters
 
@@ -93,13 +93,13 @@ status:
       status: "False"
       reason: OverrideNotAllowed
       message: "parameter \"imageRegistry\" cannot be overridden by this instance"
-```yaml
+```
 
 **Usage**: for values the platform team owns, such as image registries, mandatory labels, or security-relevant settings.
 
 ## Status visibility
 
-By default, `status.resolvedParameters[]` only records the **source** of each parameter (literal default, or which `valueFrom`). The resolved value itself is not written to status; useful when values are credentials.
+By default, `status.resolvedParameters[]` only records each parameter's name, plus the source reference for a `valueFrom` parameter. The resolved value itself is not written to status; useful when values are credentials.
 
 Set `exposeInStatus: true` on a parameter to also record the resolved value:
 
@@ -113,7 +113,7 @@ status:
         secretKeyRef:
           name: db-credentials
           key: password
-```yaml
+```
 
 Treat `exposeInStatus` as a public-information signal. Never set it on parameters resolved from `Secret`.
 

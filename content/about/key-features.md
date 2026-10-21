@@ -15,7 +15,7 @@ A `Template` exposes exactly one of two engines, enforced by an API-level valida
 - `HTTP`/`HTTPS` repositories: `url: https://charts.example.com`
 - OCI registries: `url: oci://ghcr.io/org/charts`
 
-Both Helm v3 and v4 SDKs are bundled. Pick with `spec.helm.version: v3` or `v4`. When omitted, `v4` is the default. Optional `spec.helm.valuesTemplate` is itself a Go template that, after rendering, is parsed as YAML and merged over the chart's default values.
+Both Helm v3 and v4 SDKs are bundled. Pick with `spec.helm.version: v3` or `v4`. When omitted, `v3` is the default. Optional `spec.helm.valuesTemplate` is itself a Go template that, after rendering, is parsed as YAML and merged over the chart's default values.
 
 Private repositories are supported via `spec.helm.chart.repository.auth.secretRef`, which references a `Secret` in the **Template's** namespace (not the consumer's).
 
@@ -39,7 +39,7 @@ Both engines see the same context object:
 | ConfigMap | `valueFrom.configMapKeyRef` | A specific key |
 | Any resource | `valueFrom.objectFieldRef` | A JSONPath expression evaluated against the resource (GET mode) or against a list of resources (LIST mode, when `name` is omitted) |
 
-`objectFieldRef` returns a scalar in GET mode; it always returns a list in LIST mode so templates can `{{range}}` safely. The operator dynamically watches every resource referenced by `valueFrom`, and re-reconciles the `TemplateInstance` when the source changes.
+`objectFieldRef` returns a scalar in GET mode; it always returns a list in LIST mode so templates can `{{range}}` safely. With `sync.mode: revert` or `strict`, the operator dynamically watches every resource referenced by `valueFrom`, and re-reconciles the `TemplateInstance` when the source changes.
 
 A `defaultValue` may be set on each `TemplateInstance` parameter; it is used only when paired with `valueFrom`, and applies whenever the `valueFrom` resolution fails (missing resource, missing key, JSONPath error, and so on).
 

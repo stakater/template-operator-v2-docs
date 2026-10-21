@@ -157,7 +157,9 @@ status:
 
 ## 4. Updating
 
-Editing the `TemplateInstance`'s parameters re-renders. Editing the `Template` re-enqueues every `TemplateInstance` that references it. In both cases, resources that were rendered before but not after are deleted.
+With `sync.mode: revert` or `strict`, editing the `TemplateInstance`'s parameters re-renders, and editing the `Template` re-renders every `TemplateInstance` that references it. In both cases, resources that were rendered before but not after are deleted.
+
+This `Template` uses the default `sync.mode: off`, so after the first clean apply the instance is frozen and neither edit is applied. See [Sync](../concepts/sync.md).
 
 ## 5. Deleting
 

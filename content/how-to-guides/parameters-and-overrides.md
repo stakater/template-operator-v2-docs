@@ -17,9 +17,11 @@ spec:
     - name: replicas
       value: "2"
     - name: image
-      value: ghcr.io/stakater/app:latest
+      value: nginx:latest
     - name: env
       value: production
+    - name: dbPassword
+    - name: ingressIP
   gotemplate: |
     apiVersion: apps/v1
     kind: Deployment
@@ -27,7 +29,13 @@ spec:
       name: app
     spec:
       replicas: {{ .parameters.replicas }}
+      selector:
+        matchLabels:
+          app: app
       template:
+        metadata:
+          labels:
+            app: app
         spec:
           containers:
             - name: app
@@ -35,6 +43,15 @@ spec:
               env:
                 - name: APP_ENV
                   value: {{ .parameters.env }}
+                - name: DB_PASSWORD
+                  value: {{ .parameters.dbPassword | quote }}
+                - name: INGRESS_IP
+                  value: {{ .parameters.ingressIP | quote }}
+  targetNamespaces:
+    explicit:
+      allow:
+        literal:
+          - team-a
 ```
 
 Anna's `TemplateInstance` keeps the defaults except for the image:
@@ -51,10 +68,10 @@ spec:
     namespace: provider
   parameters:
     - name: image
-      value: ghcr.io/stakater/app:v1.4.0
+      value: nginx:1.27
 ```
 
-`status.resolvedParameters` records that `image` was overridden and the other two used the `Template`'s defaults.
+`status.resolvedParameters` lists each parameter by name. It does not record whether a literal value came from the instance or from the `Template` default; it shows the value only for parameters with `exposeInStatus: true`.
 
 ## Scenario 2: read a database password from a Secret
 
@@ -87,11 +104,11 @@ spec:
           key: password
 ```
 
-The `Secret` value is base64-decoded automatically. The operator subscribes to the `Secret` and re-reconciles the `TemplateInstance` whenever the password is rotated.
+The `Secret` value is base64-decoded automatically. With `sync.mode: revert` or `strict`, the operator subscribes to the `Secret` and re-reconciles the `TemplateInstance` whenever the password is rotated. This `Template` uses the default `sync.mode: off`, so a rotation after the first clean apply is not applied.
 
 ## Scenario 3: read the ingress IP via `objectFieldRef` (GET)
 
-Anna wants the rendered `ConfigMap` to include the load-balancer IP of an existing `Ingress`. The IP is in the `Ingress.status.loadBalancer.ingress[0].ip` field.
+Anna wants the rendered `Deployment` to include the load-balancer IP of an existing `Ingress`. The IP is in the `Ingress.status.loadBalancer.ingress[0].ip` field.
 
 ```yaml
 apiVersion: templates.v2.stakater.com/v2alpha1

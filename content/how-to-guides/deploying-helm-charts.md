@@ -14,6 +14,7 @@ metadata:
   namespace: provider
 spec:
   helm:
+    version: v4   # the default v3 SDK renders this chart's PodDisruptionBudget with the removed policy/v1beta1 API
     chart:
       repository:
         url: https://charts.bitnami.com/bitnami
@@ -22,6 +23,8 @@ spec:
     releaseName: nginx
     valuesTemplate: |
       replicaCount: {{ .parameters.replicas }}
+      image:
+        repository: bitnamilegacy/nginx   # Bitnami moved its versioned images here
       service:
         type: ClusterIP
   parameters:
@@ -101,7 +104,7 @@ Each `TemplateInstance` automatically gets an ingress host derived from its own 
 ## Repository URL rules
 
 - `spec.helm.chart.repository.url` must match the pattern `^(https?|oci)://`.
-- `version` must follow [`SemVer` 2](https://semver.org), e.g. `1.2.3`, `v1.2.3`, `1.2.3-rc.1+meta`. Ranges, `latest`, and floating versions are rejected at admission time.
+- `version` must follow [`SemVer` 2](https://semver.org), e.g. `1.2.3`, `1.2.3-rc.1+meta`. Ranges, `latest`, and floating versions are rejected at admission time. Write the version without a `v` prefix: the API accepts `v1.2.3`, but the chart then fails to load.
 
 ## Status on failure
 

@@ -31,7 +31,7 @@ Every CR follows Kubernetes status conventions: a `phase`, an `observedGeneratio
 
 ## 6. Rendered-resource lifecycle is tracked
 
-The operator stamps each rendered resource with a finalizer and records its `apiVersion`, `kind`, `name`, and `namespace` in `status.renderedResources`. Deleting the `TemplateInstance` cleanly removes every rendered resource. Updating a `Template` to render a smaller set causes orphans to be deleted on the next reconcile.
+The operator stamps each rendered resource with a finalizer and records its `apiVersion`, `kind`, `name`, and `namespace` in `status.renderedResources`. Deleting the `TemplateInstance` cleanly removes every rendered resource. With `sync.mode: revert` or `strict`, updating a `Template` to render a smaller set causes orphans to be deleted on the next reconcile.
 
 ## 7. GitOps-friendly
 

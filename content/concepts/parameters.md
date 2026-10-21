@@ -17,7 +17,7 @@ For each parameter declared on the `Template`:
 
 1. If the `TemplateInstance` overrides it, the override is resolved (literal or `valueFrom`).
 1. Otherwise the `Template`'s `value` default is used.
-1. If neither exists, resolution fails: `ParametersValid=False, Reason=ParameterResolutionFailed`.
+1. If neither exists, the parameter resolves to an empty value (`""`, or `[]` / `{}` for an `array` / `object` type). A `required` parameter without an override fails instead, with `ParametersValid=False, Reason=InvalidParameter`.
 
 Resolution is **fail-fast**: if any single parameter can't be resolved, the entire `TemplateInstance` does not render. Rendering with missing parameter values would produce non-deterministic manifests that are rarely safe to apply.
 
@@ -29,7 +29,7 @@ A `TemplateParameterDefinition` is the shape of one entry in `Template.spec.para
 |-------|---------|
 | `name` | Required. Must be unique within the `Template`. |
 | `value` | Optional literal default. |
-| `type` | Optional. One of `string`, `number`, `bool`. Validates both the default and any instance override. |
+| `type` | Optional. One of `string`, `number`, `bool`, `array`, `object`. Validates both the default and any instance override. |
 | `required` | Optional. When `true`, the `TemplateInstance` MUST provide a value (the `Template` default, if any, is ignored). |
 | `disableOverride` | Optional. When `true`, the `TemplateInstance` MUST NOT supply its own value. |
 | `exposeInStatus` | Optional. When `true`, the resolved value is recorded in `status.resolvedParameters[].value`. |
@@ -44,9 +44,10 @@ A `TemplateParameterDefinition` is the shape of one entry in `Template.spec.para
 - `string`: any value is accepted.
 - `number`: must parse via Go's `strconv.ParseFloat` (e.g. `"3"`, `"3.14"`, `"-2.5e10"` are accepted; `"three"` is rejected).
 - `bool`: must parse via `strconv.ParseBool` (e.g. `"true"`, `"false"`, `"1"`, `"0"` are accepted; `"yes"` is rejected).
+- `array` / `object`: the value must be a JSON array / object. A plain string never satisfies them.
 
 !!! important
-    `type` applies to scalar parameters only. When an `objectFieldRef` resolves to a list or map, it cannot satisfy a scalar `type` such as `string`.
+    When an `objectFieldRef` resolves to a list or map, it cannot satisfy a scalar `type` such as `string`. Use `array` or `object` for those.
 
 ### `required` semantics
 
@@ -161,7 +162,7 @@ If the GVK referenced by an `objectFieldRef` cannot be resolved (for example, a 
 
 ## RBAC
 
-The operator's service account needs `get`, `list`, and `watch` on every GVK referenced by `objectFieldRef`. Standard core resources (`Secret`, `ConfigMap`, `Namespace`) are pre-granted by the chart. Adding new resource kinds to your `objectFieldRef` set requires granting the operator additional permissions.
+The operator's service account needs `get`, `list`, and `watch` on every GVK referenced by `objectFieldRef`. The chart grants only `Namespace` reads: grant every kind referenced by `secretKeyRef`, `configMapKeyRef`, or `objectFieldRef` through the chart's `rbac.additionalRules`. See [Granting permissions to rendered kinds](../installation/kubernetes.md#granting-permissions-to-rendered-kinds).
 
 ## See also
 

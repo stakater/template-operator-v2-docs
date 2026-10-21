@@ -6,7 +6,9 @@ Examples of how the operator handles resources that were rendered last time but 
 
 Bill's `Template` originally renders a `Deployment`, a `Service`, and a `ConfigMap`. Anna's `TemplateInstance` has applied all three to `team-a`.
 
-Bill updates the `Template` to drop the `ConfigMap`. On the next reconcile of Anna's `TemplateInstance`, the operator applies the two surviving resources and deletes the now-orphaned `ConfigMap`. Anna does not have to do anything.
+Bill updates the `Template` to drop the `ConfigMap`. With `sync.mode: revert` or `strict`, on the next reconcile of Anna's `TemplateInstance`, the operator applies the two surviving resources and deletes the now-orphaned `ConfigMap`. Anna does not have to do anything.
+
+Under the default `sync.mode: off`, the instance is frozen after its first clean apply, so the `ConfigMap` stays until the mode changes.
 
 ## Scenario 2: a bad Template update is rejected without losing resources
 
@@ -20,7 +22,11 @@ If the operator can't delete an orphan, for example because another controller's
 
 ```yaml
 status:
-  phase: Ready
+  phase: Failed
+  conditions:
+    - type: Ready
+      status: "False"
+      reason: DisposalFailed
   renderedResources:
     - apiVersion: v1
       kind: ConfigMap

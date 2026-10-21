@@ -95,7 +95,11 @@ A `TemplateInstance` whose orphan deletion is retrying reports:
 
 ```yaml
 status:
-  phase: Ready
+  phase: Failed
+  conditions:
+    - type: Ready
+      status: "False"
+      reason: DisposalFailed
   renderedResources:
     - apiVersion: v1
       kind: ConfigMap
@@ -108,7 +112,7 @@ status:
       namespace: team-a
 ```
 
-Entries with `status: Failed` are scheduled for retry on the next reconcile. An empty `status` indicates a successfully-applied resource.
+Entries with `status: Failed` are scheduled for retry on the next reconcile, and the instance stays `Failed` until the retry succeeds. An empty `status` indicates a successfully-applied resource.
 
 ## See also
 

@@ -12,6 +12,8 @@ By default a `TemplateInstance` is "fire-and-forget": rendered resources are app
 | `revert` | yes | no |
 | `strict` | yes | yes |
 
+The chart installs the admission webhook in every mode, and it sees every rendered resource; it denies a change only when the owning `Template` uses `strict`. Because the webhook uses `failurePolicy: Fail`, the API server rejects UPDATE and DELETE on rendered resources in every mode while the operator is down.
+
 ```yaml
 spec:
   sync:
@@ -23,7 +25,7 @@ spec:
 
 ## `off`: create once, then frozen
 
-Resources are applied until the first clean pass (every resource applied, nothing left to clean up). The instance then freezes: no input change re-applies anything — not a `Template` edit, not a `TemplateInstance` edit (parameters included), not a change in a `valueFrom` source. Manual edits to the rendered resources survive, and a manually deleted resource is not recreated. The freeze start is recorded in `status.firstAppliedAt`.
+Resources are applied until the first clean pass (every resource applied, nothing left to clean up). The instance then freezes: no input change re-applies anything — not a `Template` edit, not a `TemplateInstance` edit (parameters included), not a change in a `valueFrom` source. Manual edits to the rendered resources survive. A manually deleted resource is not recreated: it stays in `Terminating`, because the operator's finalizer is not released (as under [`revert`](#revert-continuous-reconcile-no-admission-block)). The freeze start is recorded in `status.firstAppliedAt`.
 
 To resume management, flip the `Template`'s `sync.mode` to `revert` or `strict`: the next reconcile applies the current render, and all accumulated input changes land at once (overwriting manual edits). Flipping back to `off` freezes again immediately.
 
@@ -49,7 +51,7 @@ The controller, on every reconcile of the `TemplateInstance`, re-applies the ren
 1. Compare the dry-run result with the live object, ignoring `ignoreFields`.
 1. If they differ, apply the desired object, overwriting the drift.
 
-External edits are accepted by the API server and then brought back in line with the rendered output on the next reconcile. The webhook is not involved in this mode, so the edit is not blocked at admission time, the convergence happens during the controller's normal reconcile loop.
+External edits are accepted by the API server and then brought back in line with the rendered output on the next reconcile. The webhook does not block edits in this mode, so the edit is not blocked at admission time, the convergence happens during the controller's normal reconcile loop.
 
 **Usage**: for resources that may legitimately be edited from time to time (for example by a debugging engineer) but must always converge back to the rendered baseline.
 
@@ -94,6 +96,9 @@ sync:
 
 The operator always excludes server-managed metadata from the drift comparison even without explicit ignore entries: `resourceVersion`, `managedFields`, `generation`, `uid`, `creationTimestamp`, and `status` are never considered drift.
 
+!!! note "`ignoreFields` does not protect a field from a re-apply"
+    `ignoreFields` only controls drift detection (and, in `strict`, the webhook). When the operator re-applies a resource for another reason, it applies the full render, so a field that the template sets returns to the rendered value. For a field that another controller owns, such as `spec.replicas` under an HPA, leave the field out of the template.
+
 ## Ownership metadata used by sync
 
 When `sync` is enabled, every rendered resource is stamped with:
@@ -122,15 +127,11 @@ status:
 
 `Ready` continues to reflect overall reconciliation success. A failed drift revert surfaces through the existing `Applied=False, Reason=ApplyFailed`.
 
-## Strict mode requires cert-manager
+Under `off`, an instance reports `Synced=False` with reason `Frozen` after its first clean apply. This is the normal state, not an error.
 
-The webhook server needs TLS. The chart provisions:
+## Webhook certificate
 
-- A self-signed `Issuer` (`selfsigned-issuer`).
-- A `Certificate` for the webhook service (`webhook-server-cert`).
-- A `ValidatingWebhookConfiguration` patched with the cert-manager CA bundle.
-
-cert-manager must be installed on the cluster before you set any `Template.spec.sync.mode: strict`.
+The webhook server needs TLS. The chart always runs the webhook, so every install needs a serving certificate, not only clusters that use `strict`. See [Installation](../installation/overview.md).
 
 ## Webhook edge cases (strict mode)
 

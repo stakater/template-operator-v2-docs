@@ -56,11 +56,12 @@ _Appears in:_
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
-| `gotemplate` _string_ | Exactly one of `gotemplate` or `helm` must be specified.<br />gotemplate is rendered using Go text/template.<br />It may emit one or more Kubernetes manifests.<br />Sprig functions are also available https://masterminds.github.io/sprig/<br />If a namespace-scoped resource omits the namespace field,<br />it will be created in the TemplateInstance's namespace (consumer namespace),<br />NOT in the 'default' namespace or the Template's namespace.<br />Available context (non-exhaustive):<br />- .parameters : resolved parameter values<br />- .instance   : metadata of the TemplateInstance (name, namespace, labels) |  |  |
+| `gotemplate` _string_ | Exactly one of `gotemplate` or `helm` must be specified.<br />gotemplate is rendered using Go text/template.<br />It may emit one or more Kubernetes manifests.<br />Sprig functions are also available https://masterminds.github.io/sprig/<br />If a namespace-scoped resource omits the namespace field,<br />it will be created in the TemplateInstance's namespace (consumer namespace),<br />NOT in the 'default' namespace or the Template's namespace.<br />Available context (non-exhaustive):<br />- .parameters : resolved parameter values<br />- .instance   : metadata of the TemplateInstance (name, namespace, labels)<br />Referencing a value that does not exist (a typo, or an instance label<br />that is not set) fails the render; the TemplateInstance reports the<br />missing key in its Rendered condition. For optional values, look up<br />through `index`, which returns an empty value instead of failing:<br />  \{\{ index .instance.labels "env" \| default "dev" \}\}<br />  \{\{ if index .instance.labels "env" \}\} ... \{\{ end \}\} |  |  |
 | `helm` _[HelmSpec](#helmspec)_ | Helm renders a Helm chart instead of a raw Go template.<br />Exactly one of `gotemplate` or `helm` must be specified. |  | Optional: \{\} <br /> |
 | `parameters` _[TemplateParameterDefinition](#templateparameterdefinition) array_ | Parameters define the inputs required to render the template.<br />Rules:<br />- `type` is a hint used for validation/coercion (operator-defined). |  | Optional: \{\} <br /> |
 | `targetNamespaces` _[TargetNamespaces](#targetnamespaces)_ | TargetNamespaces controls where this Template may be instantiated.<br />Default behavior:<br />If this field is omitted entirely, the Template may ONLY be instantiated<br />in the same namespace as this Template.<br />A namespace is eligible if it matches the explicit list OR the selector. |  | Optional: \{\} <br /> |
 | `sync` _[SyncConfig](#syncconfig)_ | Sync controls drift protection for rendered resources. |  | Optional: \{\} <br /> |
+| `outputs` _[TemplateOutput](#templateoutput) array_ | Outputs declare named extractions from this Template's rendered resources,<br />surfaced on TemplateInstance.status.outputs. Each entry chooses exactly one<br />iteration mode by field combination:<br />  - from only          single-resource extraction<br />  - fromAll only        iterate all rendered resources of a GVK<br />  - from + forEach      iterate an array of objects inside one resource |  | MaxItems: 50 <br />Optional: \{\} <br /> |
 
 
 #### HelmSpec
@@ -78,8 +79,8 @@ _Appears in:_
 | --- | --- | --- | --- |
 | `chart` _[HelmChart](#helmchart)_ | Chart defines where the Helm chart is sourced from. |  | Required: \{\} <br /> |
 | `releaseName` _string_ | ReleaseName is the Helm release name used during rendering.<br />If omitted, defaults to the TemplateInstance name at render time. |  | MaxLength: 53 <br />Optional: \{\} <br /> |
-| `version` _[HelmVersion](#helmversion)_ | Version selects the Helm rendering engine.<br />Defaults to "v4" if omitted. | v4 | Enum: [v3 v4] <br />Optional: \{\} <br /> |
-| `valuesTemplate` _string_ | ValuesTemplate is a Go template that renders into YAML used as Helm values.<br />The rendered YAML is parsed and passed as Helm value overrides<br />(merged over the chart's default values.yaml).<br />Available context (same as gotemplate):<br />- .parameters : resolved parameter values<br />- .instance   : metadata of the TemplateInstance (name, namespace, labels) |  | Optional: \{\} <br /> |
+| `version` _[HelmVersion](#helmversion)_ | Version selects the Helm rendering engine.<br />Defaults to "v3" if omitted: existing templates are written against<br />Helm v3 behavior, so migrated charts render the same as before.<br />Set "v4" to opt in to the Helm v4 engine. | v3 | Enum: [v3 v4] <br />Optional: \{\} <br /> |
+| `valuesTemplate` _string_ | ValuesTemplate is a Go template that renders into YAML used as Helm values.<br />The rendered YAML is parsed and passed as Helm value overrides<br />(merged over the chart's default values.yaml).<br />Available context (same as gotemplate):<br />- .parameters : resolved parameter values<br />- .instance   : metadata of the TemplateInstance (name, namespace, labels)<br />Like gotemplate, referencing a value that does not exist fails the<br />render; use `index` (with `default`) for optional lookups. |  | Optional: \{\} <br /> |
 
 
 #### HelmChart
@@ -182,8 +183,8 @@ _Appears in:_
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
 | `name` _string_ | Name is the name of the parameter |  | MinLength: 1 <br />Required: \{\} <br /> |
-| `value` _string_ | Option 1 (literal): string\|number\|bool<br />Value provides a literal parameter value (string, number, or bool). |  | Optional: \{\} <br /> |
-| `type` _[ParameterType](#parametertype)_ | Type declares the expected type for validation of both template<br />default values and instance overrides. |  | Enum: [string number bool] <br />Optional: \{\} <br /> |
+| `value` _[JSON](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#json-v1-apiextensions-k8s-io)_ | Value provides the parameter's literal default. It may be a scalar<br />(string, number, bool), a list, or an object, matching the declared type. |  | Schemaless: \{\} <br />Optional: \{\} <br /> |
+| `type` _[ParameterType](#parametertype)_ | Type declares the expected type for validation of both template<br />default values and instance overrides. |  | Enum: [string number bool array object] <br />Optional: \{\} <br /> |
 | `required` _boolean_ | Required, if true, means the TemplateInstance MUST provide a value<br />for this parameter, regardless of whether the template has a default. |  | Optional: \{\} <br /> |
 | `exposeInStatus` _boolean_ | ExposeInStatus controls whether the resolved value appears in<br />TemplateInstance status resolvedParameters. Defaults to false (hidden). |  | Optional: \{\} <br /> |
 | `disableOverride` _boolean_ | DisableOverride controls whether a TemplateInstance may supply its own<br />value for this parameter. Defaults to false (allow override) when omitted. |  | Optional: \{\} <br /> |
@@ -196,7 +197,7 @@ _Underlying type:_ _string_
 ParameterType declares the expected type for validation.
 
 _Validation:_
-- Enum: [string number bool]
+- Enum: [string number bool array object]
 
 _Appears in:_
 - [TemplateParameterDefinition](#templateparameterdefinition)
@@ -206,6 +207,8 @@ _Appears in:_
 | `string` |  |
 | `number` |  |
 | `bool` |  |
+| `array` |  |
+| `object` |  |
 
 
 #### TargetNamespaces
@@ -238,7 +241,7 @@ _Appears in:_
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
-| `mode` _[SyncMode](#syncmode)_ | Mode selects the drift protection strategy.<br />- off (default): resources are created once with no ongoing enforcement.<br />- revert: the controller continuously reconciles rendered resources,<br />  reverting external drift back to the desired state.<br />- strict: same as revert, plus an admission webhook proactively blocks<br />  unauthorized UPDATE/DELETE on rendered resources. | off | Enum: [off revert strict] <br />Optional: \{\} <br /> |
+| `mode` _[SyncMode](#syncmode)_ | Mode selects the drift protection strategy.<br />- off (default): create once, then freeze — no Template, instance or<br />  valueFrom source change re-applies, and manual edits survive.<br />- revert: the controller continuously reconciles rendered resources,<br />  reverting external drift back to the desired state.<br />- strict: same as revert, plus an admission webhook proactively blocks<br />  unauthorized UPDATE/DELETE on rendered resources. | off | Enum: [off revert strict] <br />Optional: \{\} <br /> |
 | `ignoreFields` _string array_ | IgnoreFields defines field paths that are exempt from enforcement.<br />Changes to these fields are allowed even when sync is enabled.<br />Field paths use dot-separated notation and are evaluated per rendered object.<br />Array wildcards are supported via [*] notation.<br />Examples: "metadata.annotations", "spec.replicas", "spec.template.spec.containers[*].env" |  | Optional: \{\} <br /> |
 
 
@@ -256,9 +259,84 @@ _Appears in:_
 
 | Field | Description |
 | --- | --- |
-| `off` | SyncModeOff disables drift protection. Resources are created once<br />with no ongoing reconciliation or enforcement.<br /> |
+| `off` | SyncModeOff creates the resources once, then freezes the instance: no<br />Template, instance or valueFrom source change re-applies, and manual<br />edits survive. A defaultValue used at the first clean apply is kept.<br />Flip to revert/strict to resume.<br /> |
 | `revert` | SyncModeRevert enables reconciliation-based drift correction.<br />The controller continuously reconciles rendered resources to the<br />desired state, reverting any drift. No webhook enforcement.<br /> |
 | `strict` | SyncModeStrict enables reconciliation and webhook enforcement.<br />In addition to continuous reconciliation, an admission webhook<br />proactively blocks unauthorized UPDATE/DELETE on rendered resources.<br /> |
+
+
+#### TemplateOutput
+
+
+
+TemplateOutput declares a named extraction from this Template's rendered resources.
+
+
+
+_Appears in:_
+- [TemplateSpec](#templatespec)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `name` _string_ | Name is the parent identifier for this output entry, unique across outputs[].<br />It is NOT surfaced in TemplateInstance status; the user-visible status keys<br />come from each fields[].name below. |  | MaxLength: 63 <br />MinLength: 1 <br />Pattern: `^[a-zA-Z][a-zA-Z0-9]*$` <br />Required: \{\} <br /> |
+| `from` _[OutputSourceRef](#outputsourceref)_ | From selects a single rendered resource. Required for single-resource and<br />forEach modes; must be absent in fromAll mode. |  | Optional: \{\} <br /> |
+| `fromAll` _[OutputSourceAll](#outputsourceall)_ | FromAll iterates every rendered resource matching the GVK. Mutually exclusive<br />with from and forEach. |  | Optional: \{\} <br /> |
+| `forEach` _string_ | ForEach iterates an array OF OBJECTS inside the resource named by `from`.<br />JSONPath query wrapped in \{...\}; "\{.__index\}" (zero-based position) is<br />available to keyTemplate. Required for forEach mode; absent otherwise. |  | MaxLength: 256 <br />MinLength: 1 <br />Optional: \{\} <br /> |
+| `keyTemplate` _string_ | KeyTemplate renders the inner status-map key (JSONPath template, \{...\}).<br />Required for forEach. Optional for fromAll (runtime scope-aware default:<br />namespaced -> "\{.metadata.namespace\}/\{.metadata.name\}", cluster-scoped -><br />"\{.metadata.name\}"). Optional for single mode (defaults to "\{.metadata.name\}"). |  | MaxLength: 256 <br />MinLength: 1 <br />Optional: \{\} <br /> |
+| `fields` _[OutputField](#outputfield) array_ | Fields are the JSONPath extractions performed against each matched resource<br />(or, for forEach, each array element). |  | MaxItems: 50 <br />MinItems: 1 <br />Required: \{\} <br /> |
+
+
+#### OutputSourceRef
+
+
+
+OutputSourceRef identifies a single rendered resource (from / forEach modes).
+
+
+
+_Appears in:_
+- [TemplateOutput](#templateoutput)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `apiVersion` _string_ | APIVersion of the source resource (e.g. "v1", "apps/v1"). |  | MaxLength: 253 <br />Required: \{\} <br /> |
+| `kind` _string_ | Kind of the source resource. Kind: Secret is refused at admission because<br />TemplateInstance status is broadly readable to anyone with get templateinstance. |  | MaxLength: 63 <br />Required: \{\} <br /> |
+| `name` _string_ | Name is a JSONPath template (\{...\}) evaluated against the Template context<br />(\{"parameters": \{...\}, "instance": \{name, namespace, labels\}\}). The rendered<br />name must exist in status.renderedResources at extraction time.<br />With sync.mode off, parameters referenced here need exposeInStatus: true —<br />a frozen instance resolves selectors from status.resolvedParameters, never<br />from live values. |  | MaxLength: 256 <br />MinLength: 1 <br />Required: \{\} <br /> |
+| `namespace` _string_ | Namespace is a JSONPath template (\{...\}); defaults to the TemplateInstance's<br />namespace when omitted. Ignored for cluster-scoped kinds. |  | MaxLength: 253 <br />Optional: \{\} <br /> |
+
+
+#### OutputSourceAll
+
+
+
+OutputSourceAll selects all rendered resources of a GVK (fromAll mode).
+
+
+
+_Appears in:_
+- [TemplateOutput](#templateoutput)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `apiVersion` _string_ | APIVersion of the source resources (e.g. "apps/v1"). |  | MaxLength: 253 <br />Required: \{\} <br /> |
+| `kind` _string_ | Kind of the source resources. Kind: Secret is refused at admission. |  | MaxLength: 63 <br />Required: \{\} <br /> |
+| `namespace` _string_ | Namespace is a JSONPath template (\{...\}) scoping the iteration; when omitted,<br />iterates across every namespace this instance rendered into. |  | MaxLength: 253 <br />Optional: \{\} <br /> |
+
+
+#### OutputField
+
+
+
+OutputField is a single JSONPath extraction mapped to one outer status key.
+
+
+
+_Appears in:_
+- [TemplateOutput](#templateoutput)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `name` _string_ | Name is the OUTER key under status.outputs. Must be unique across the<br />FLATTENED set of all outputs[].fields[].name in this Template (enforced by<br />the Template reconciler). |  | MaxLength: 63 <br />MinLength: 1 <br />Pattern: `^[a-zA-Z][a-zA-Z0-9]*$` <br />Required: \{\} <br /> |
+| `jsonPath` _string_ | JSONPath query wrapped in \{...\}. A scalar result is stored as-is; an<br />array/object result is JSON-encoded (e.g. "\{.foo[*].ip\}" -> '["v4","v6"]'). |  | MaxLength: 256 <br />MinLength: 1 <br />Required: \{\} <br /> |
 
 
 #### TemplateStatus
@@ -339,6 +417,7 @@ _Appears in:_
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
 | `templateRef` _[TemplateReference](#templatereference)_ | templateRef points to the provider-scoped Template to instantiate.<br />This is a cross-namespace reference by design |  |  |
+| `serviceAccountRef` _[ServiceAccountRef](#serviceaccountref)_ | serviceAccountRef names the ServiceAccount, in this TemplateInstance's own<br />namespace, whose identity is used to resolve valueFrom parameters from the<br />cluster and to watch their source resources. The ServiceAccount needs RBAC<br />(get, and list/watch for change detection) on every referenced resource, and<br />list on namespaces when a parameter uses namespaceSelector.<br />If the named ServiceAccount does not exist, the instance fails with reason<br />ServiceAccountNotFound before any parameter is resolved — parameter<br />defaultValue fallbacks do not apply to a missing identity.<br />Using this field also requires the cluster to have granted the operator's<br />own service account the 'impersonate' verb on 'serviceaccounts'; the<br />operator does not ship with it, because granting it cluster-wide and<br />unscoped is equivalent to cluster-admin. Without the grant the instance<br />fails with reason ImpersonationNotPermitted, again before any resolution.<br />When omitted, parameters resolve with the operator's own service account. |  | Optional: \{\} <br /> |
 | `parameters` _[TemplateParameter](#templateparameter) array_ | Parameters override the parameters defined in the referenced Template.<br />Validation:<br />- A parameter override is only allowed if the corresponding Template parameter has<br />  `disableOverride: false` set (or omitted, since it defaults to false).<br />- If a parameter is not overridden here, the Template's default definition is used. |  | Optional: \{\} <br /> |
 
 
@@ -359,6 +438,25 @@ _Appears in:_
 | `namespace` _string_ | Namespace where the Template resource is located |  |  |
 
 
+#### ServiceAccountRef
+
+
+
+ServiceAccountRef names a ServiceAccount in the TemplateInstance's namespace.
+It intentionally has no namespace field: the referenced ServiceAccount is always
+resolved in the TemplateInstance's own namespace, so an instance can never assume
+an identity from another tenant's namespace.
+
+
+
+_Appears in:_
+- [TemplateInstanceSpec](#templateinstancespec)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `name` _string_ | Name of the ServiceAccount. |  | MaxLength: 253 <br />MinLength: 1 <br />Required: \{\} <br /> |
+
+
 #### TemplateParameter
 
 
@@ -375,7 +473,7 @@ _Appears in:_
 | `name` _string_ | Name is the name of the parameter |  | MinLength: 1 <br />Required: \{\} <br /> |
 | `value` _string_ | Option 1 (literal): string\|number\|bool<br />Value provides a literal parameter value (string, number, or bool). |  | Optional: \{\} <br /> |
 | `valueFrom` _[ValueFrom](#valuefrom)_ | Option 2: read a value dynamically from a cluster resource.<br />Exactly one of `value` or `valueFrom` must be set. |  | MaxProperties: 1 <br />MinProperties: 1 <br />Optional: \{\} <br /> |
-| `defaultValue` _string_ | DefaultValue is used when `valueFrom` fails.<br />Only valid with valueFrom. |  | Optional: \{\} <br /> |
+| `defaultValue` _string_ | DefaultValue is used when `valueFrom` fails.<br />Only valid with valueFrom.<br />With sync.mode off, a fallback at the first clean apply is final: the<br />instance freezes with the default and does not re-read the source if it is<br />created, or becomes readable, after the first clean apply. |  | Optional: \{\} <br /> |
 
 
 #### ValueFrom
@@ -425,16 +523,20 @@ _Appears in:_
 
 ObjectFieldRef reads a field from an arbitrary Kubernetes resource via JSONPath.
 
-The operator watches the target GVK for change detection.
+The operator watches the target GVK for change detection. With sync.mode
+off that watch is released once the instance freezes after its first clean
+apply, and later changes to the target are ignored.
 When Name is set, the operator GETs that specific resource.
 When Name is omitted, the operator LISTs all resources of the given GVK
 and evaluates JSONPath over the list result.
 RBAC: requires get, list, and watch on the target resource.
 
-Namespace scoping:
-  - Set: operate in that namespace only
-  - Empty: for namespaced resources, operates across all namespaces;
-    for cluster-scoped resources (Nodes, PVs, etc.), ignored
+Namespace scoping (mutually exclusive options):
+  - Namespace set: operate in that namespace only.
+  - NamespaceSelector set: LIST/watch across every namespace whose labels
+    match the selector. Only valid in LIST mode (Name empty).
+  - Both empty: for namespaced resources, operates across all namespaces;
+    for cluster-scoped resources (Nodes, PVs, etc.), ignored.
 
 
 
@@ -446,7 +548,8 @@ _Appears in:_
 | `apiVersion` _string_ | APIVersion of the target resource (e.g., "networking.k8s.io/v1"). |  | MinLength: 1 <br />Required: \{\} <br /> |
 | `kind` _string_ | Kind of the target resource (e.g., "Ingress"). |  | MinLength: 1 <br />Required: \{\} <br /> |
 | `name` _string_ | Name of the target resource. When omitted, the operator LISTs all<br />resources of this GVK and evaluates JSONPath over the list result. |  | Optional: \{\} <br /> |
-| `namespace` _string_ | Namespace of the target resource.<br />When empty, namespaced resources are listed across all namespaces;<br />cluster-scoped resources ignore this field. |  | Optional: \{\} <br /> |
+| `namespace` _string_ | Namespace of the target resource.<br />When empty, namespaced resources are listed across all namespaces;<br />cluster-scoped resources ignore this field.<br />Mutually exclusive with NamespaceSelector. |  | Optional: \{\} <br /> |
+| `namespaceSelector` _[LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#labelselector-v1-meta)_ | NamespaceSelector matches the namespaces in which to LIST/watch the<br />target GVK. Only meaningful in LIST mode (Name empty). The matched<br />namespace set is kept current as namespaces are created, deleted, or<br />relabeled.<br />A terminating namespace is omitted, even while it still carries the labels.<br />Mutually exclusive with Namespace. Has no effect on cluster-scoped<br />target GVKs (operator surfaces an error at resolution time).<br />RBAC: requires the operator's ServiceAccount to have<br />namespaces: list, watch. |  | Optional: \{\} <br /> |
 | `jsonPath` _string_ | JSONPath expression to extract the value (without curly braces).<br />Must start with a dot (e.g., ".metadata.name", not "\{.metadata.name\}").<br />Examples: .status.loadBalancer.ingress[0].ip, .metadata.name, .items[*].metadata.name |  | MinLength: 1 <br />Required: \{\} <br /> |
 
 
@@ -463,13 +566,17 @@ _Appears in:_
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
-| `observedGeneration` _integer_ | observedGeneration represents the .metadata.generation that the controller last successfully reconciled. |  | Optional: \{\} <br /> |
+| `observedGeneration` _integer_ | observedGeneration is the .metadata.generation the controller most recently<br />reconciled. A frozen sync-off instance advances it without applying the<br />change; the Synced condition (reason Frozen) reports that. |  | Optional: \{\} <br /> |
 | `phase` _[TemplateInstancePhase](#templateinstancephase)_ | phase summarizes the overall validation state of the Template. |  | Enum: [Ready Failed] <br />Optional: \{\} <br /> |
 | `resolvedParameters` _[ResolvedParameter](#resolvedparameter) array_ | resolvedParameters exposes the final parameter values used for rendering<br />AFTER merging Template defaults and Instance overrides. |  | Optional: \{\} <br /> |
 | `renderedResources` _[ResourceReference](#resourcereference) array_ | renderedResources list the resources created by this TemplateInstance.<br />IMPORTANT:<br />This list contains ONLY the minimum identifying information required<br />to locate the rendered resources (apiVersion, kind, name, namespace).<br />It MUST NOT be treated as a source of truth for desired or live state,<br />and MUST NOT embed full object specs or status. |  | MaxItems: 500 <br />Optional: \{\} <br /> |
 | `trackedGVKs` _string array_ | trackedGVKs is the set of GroupVersionKinds this TemplateInstance has rendered. |  | Optional: \{\} <br /> |
+| `matchedNamespaces` _string array_ | matchedNamespaces lists the namespaces resolved by any parameter whose<br />objectFieldRef.namespaceSelector matched a non-empty set on the last<br />reconcile. Populated only when at least one such parameter exists.<br />Useful for debugging "why does my TI include / exclude this namespace?".<br />The list is bounded — selectors matching more than 100 namespaces are<br />truncated and the truncated set is logged. |  | MaxItems: 100 <br />Optional: \{\} <br /> |
 | `resolvedTemplateRef` _[ResolvedTemplateRef](#resolvedtemplateref)_ | resolvedTemplateRef shows the exact Template used for rendering,<br />including its namespace and resourceVersion. |  | Optional: \{\} <br /> |
 | `conditions` _[Condition](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#condition-v1-meta) array_ | conditions represent the latest available observations of the TemplateInstance's state. |  | Optional: \{\} <br /> |
+| `outputs` _object (keys:string, values:object)_ | outputs maps each Template output field name (outer key) to a map of<br />rendered keyTemplate (inner key) -> extracted value. Populated from<br />Template.spec.outputs against this instance's rendered resources. |  | Optional: \{\} <br /> |
+| `outputsObservedAt` _[Time](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#time-v1-meta)_ | outputsObservedAt is the time the output values (the outputs map) last changed.<br />It advances only when a resolution produces a different map than the stored one,<br />not on every check and not when only the OutputsResolved condition message<br />changes while the values are unchanged. It is a last-value-change marker, not a<br />liveness probe; condition status transitions are timestamped separately by the<br />OutputsResolved condition's own lastTransitionTime. |  | Optional: \{\} <br /> |
+| `firstAppliedAt` _[Time](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#time-v1-meta)_ | firstAppliedAt is set once, at the first clean pass: every rendered<br />resource applied and no orphan left to dispose. A defaultValue fallback<br />counts as clean. With sync.mode off the instance is then frozen: no<br />Template, instance or valueFrom source change re-applies, and manual<br />edits survive. Flip the mode to revert/strict to resume. |  | Optional: \{\} <br /> |
 
 
 #### TemplateInstancePhase
@@ -507,6 +614,29 @@ _Appears in:_
 | `name` _string_ | Name of the parameter. |  |  |
 | `value` _string_ | Value is the resolved parameter value. Only populated when the<br />Template parameter has exposeInStatus: true. |  | Optional: \{\} <br /> |
 | `valueFrom` _[ValueFrom](#valuefrom)_ | ValueFrom records the source that was used to resolve this parameter,<br />when the value came from a dynamic source (secret, configmap, resource). |  | MaxProperties: 1 <br />MinProperties: 1 <br />Optional: \{\} <br /> |
+| `usedDefault` _boolean_ | UsedDefault is true when the parameter's valueFrom could not be read<br />(source missing or access denied) and the value came from defaultValue<br />instead. The parameters that fell back are also listed in the<br />ParametersValid condition message. |  | Optional: \{\} <br /> |
+| `fallbackReason` _[FallbackReason](#fallbackreason)_ | FallbackReason categorizes why defaultValue was used. Set only when<br />UsedDefault is true; empty means the parameter resolved from its source. |  | Enum: [AccessDenied SourceNotFound ResolutionFailed] <br />Optional: \{\} <br /> |
+
+
+#### FallbackReason
+
+_Underlying type:_ _string_
+
+FallbackReason labels why a parameter fell back to its defaultValue.
+The empty value is not one of the reasons below: it means no fallback
+happened and the parameter resolved from its source.
+
+_Validation:_
+- Enum: [AccessDenied SourceNotFound ResolutionFailed]
+
+_Appears in:_
+- [ResolvedParameter](#resolvedparameter)
+
+| Field | Description |
+| --- | --- |
+| `AccessDenied` | FallbackReasonAccessDenied: the resolving identity lacks RBAC for the<br />source — typically a missing RoleBinding.<br /> |
+| `SourceNotFound` | FallbackReasonSourceNotFound: the referenced source does not exist.<br /> |
+| `ResolutionFailed` | FallbackReasonResolutionFailed: any other maskable failure (e.g. a<br />JSONPath that matched nothing, or a namespaceSelector matching zero<br />namespaces).<br /> |
 
 
 #### ResourceReference
@@ -565,6 +695,8 @@ _Appears in:_
 | `name` _string_ | Name of the Template resource |  |  |
 | `namespace` _string_ | Namespace where the Template resource is located |  |  |
 | `generation` _integer_ | Generation of the Template which increments on spec changes |  |  |
+
+
 
 
 

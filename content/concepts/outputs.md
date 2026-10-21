@@ -31,7 +31,7 @@ outputs:
 - `fields[].name` is the **outer key** under `status.outputs`. It must be unique across the flattened set of every `fields[].name` in the `Template`.
 - `fields[].jsonPath` is a JSONPath query wrapped in `{...}`. A scalar result is stored as-is; an array or object result is JSON-encoded — `"{.status.loadBalancer.ingress[*].ip}"` becomes `'["10.0.0.1","10.0.0.2"]'`.
 
-The result lands at `status.outputs.<output-name>.<field-name>`.
+The result lands at `status.outputs.<field-name>.<key>`, where `keyTemplate` renders the key. The output `name` does not appear in status.
 
 ## `from`: a single resource
 
@@ -58,9 +58,9 @@ gives:
 ```yaml
 status:
   outputs:
-    deployments:
-      team-a/web: { available: "3" }
-      team-a/worker: { available: "1" }
+    available:
+      team-a/web: "3"
+      team-a/worker: "1"
 ```
 
 `keyTemplate` is optional for `fromAll` (it defaults to `{.metadata.namespace}/{.metadata.name}` for namespaced kinds and `{.metadata.name}` for cluster-scoped), and optional for single mode (defaults to `{.metadata.name}`).

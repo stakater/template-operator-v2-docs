@@ -22,7 +22,7 @@ Two fields summarize the operator's view of a CR:
 
 `TemplateInstance` phases:
 
-- `Ready`: all conditions are true.
+- `Ready`: the instance rendered and applied. Conditions that report extra state, such as `OutputsResolved` or `Synced`, do not change the phase. Under `sync.mode: off`, a `Ready` instance shows `Synced=False` with reason `Frozen`; this is normal.
 - `Failed`: at least one of `TemplateResolved`, `TargetNamespaceAllowed`, `ParametersValid`, `Rendered`, or `Applied` is `False`.
 
 ## ObservedGeneration

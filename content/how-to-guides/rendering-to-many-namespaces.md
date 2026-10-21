@@ -22,8 +22,8 @@ spec:
       required: true
   gotemplate: |
     {{- range $ns := .parameters.namespaces }}
-    {{- $labels := default dict $ns.metadata.labels }}
-    {{- if hasKey $labels "team" }}
+    {{- $labels := default dict (index $ns.metadata "labels") }}
+    {{- if and (hasKey $labels "team") (not (hasKey $ns.metadata "deletionTimestamp")) }}
     ---
     apiVersion: v1
     kind: ConfigMap
@@ -40,6 +40,8 @@ spec:
 ```
 
 The gotemplate filters in-template with `hasKey`/`index` rather than a server-side selector, so the one namespace watch covers every rule you might apply. Reading optional keys defensively matters here — see [missing keys are an error](../concepts/gotemplate.md#missing-keys-are-an-error).
+
+The `deletionTimestamp` check skips a namespace that is being deleted. Without it, the rendered `ConfigMap` keeps the operator's finalizer, and the namespace stays in `Terminating`.
 
 ## 2. Bind it, listing all namespaces
 
@@ -67,7 +69,7 @@ spec:
 ```bash
 kubectl label namespace team-a team=a
 kubectl label namespace team-b team=b
-kubectl get configmap cluster-info -A        # one per labelled namespace
+kubectl get configmap -A --field-selector metadata.name=cluster-info   # one per labelled namespace
 
 kubectl create namespace team-c && kubectl label namespace team-c team=c
 kubectl get configmap cluster-info -n team-c # appears without touching the TemplateInstance

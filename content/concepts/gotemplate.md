@@ -6,7 +6,7 @@
 
 - You want one or two resources, not a full release.
 - The template is short enough to read inline in the `Template` YAML.
-- You don't need conditional sub-charts or release-level lifecycle hooks.
+- You don't need conditional sub-charts.
 - You want the operator's deletion to cleanly remove every rendered resource (Helm release state isn't managed; gotemplate output is tracked one resource at a time).
 
 ## Syntax
@@ -39,9 +39,11 @@ The template is executed with Go's `missingkey=error` option, so reading a map k
 Read optional keys defensively instead of as struct fields:
 
 ```gotemplate
-{{- $labels := default dict $obj.metadata.labels }}   {{/* nil-safe */}}
+{{- $labels := default dict (index $obj.metadata "labels") }}   {{/* nil-safe */}}
 {{- if hasKey $labels "team" }}{{ index $labels "team" }}{{ end }}
 ```
+
+`index` returns nothing for a missing key, where `$obj.metadata.labels` fails.
 
 `.parameters.<name>` itself is always present (an unresolved required parameter fails earlier, at parameter resolution) — this applies to keys you read *within* a parameter's value.
 

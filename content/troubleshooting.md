@@ -24,7 +24,7 @@ kubectl describe templateinstance <name> -n <consumer-namespace>
 kubectl get events -n <namespace> --field-selector involvedObject.name=<name>
 
 # Controller logs
-kubectl logs -n template-operator-system deploy/controller-manager
+kubectl logs -n template-operator-system deploy/template-operator-v2-controller-manager
 
 # Resources owned by a TemplateInstance (across all GVKs)
 kubectl get <kind> -A -l templates.v2.stakater.com/instance-uid=<uid>
@@ -134,9 +134,9 @@ kubectl get templateinstances -A \
 
 ### `Synced` condition is missing
 
-**Cause**: `Synced` is only published when `Template.spec.sync.mode` is `revert` or `strict`. If you expect drift protection and don't see it, the mode is `off`.
+**Cause**: `Synced=True` is only published when `Template.spec.sync.mode` is `revert` or `strict`. Under `off`, an applied instance shows `Synced=False` with reason `Frozen`.
 
-**Resolution**: set `spec.sync.mode` to `revert` or `strict` on the `Template`. For `strict`, cert-manager must be installed on the cluster, since the webhook needs TLS.
+**Resolution**: set `spec.sync.mode` to `revert` or `strict` on the `Template`.
 
 ### External edits keep being reverted in `revert` mode
 
@@ -156,7 +156,7 @@ This is the intended behavior. The operator re-applies the rendered output on ev
 
 **Cause**: a `Secret` or `ConfigMap` change isn't being picked up.
 
-**Resolution**: confirm the operator's RBAC includes `get`/`list`/`watch` on the GVK in the relevant namespace. For an `objectFieldRef` on a CRD, confirm the CRD is installed. To force an immediate reconcile:
+**Resolution**: check the `Template`'s `sync.mode` first. Under `off`, the instance is frozen after its first clean apply and ignores source changes (`Synced=False`, reason `Frozen`); set the mode to `revert` or `strict` to apply them. Otherwise, confirm the operator's RBAC includes `get`/`list`/`watch` on the GVK in the relevant namespace. For an `objectFieldRef` on a CRD, confirm the CRD is installed. To force an immediate reconcile:
 
 ```bash
 kubectl annotate templateinstance <name> -n <namespace> \
@@ -184,7 +184,7 @@ kubectl annotate templateinstance <name> -n <namespace> \
   reconcile.stakater.com/timestamp="$(date -Iseconds)" --overwrite
 ```
 
-Annotation changes are part of the controller's predicate set, so this re-enqueues the instance without changing its spec.
+Annotation changes are part of the controller's predicate set, so this re-enqueues the instance without changing its spec. It does not re-apply an instance that is frozen under `sync.mode: off`.
 
 ### Strip a stuck finalizer (last resort)
 
@@ -202,11 +202,11 @@ kubectl patch <kind> <name> -n <ns> \
 
 When opening an issue, attach:
 
-- Operator version (`kubectl get deploy controller-manager -n template-operator-system -o jsonpath='{.spec.template.spec.containers[0].image}'`).
+- Operator version (`kubectl get deploy template-operator-v2-controller-manager -n template-operator-system -o jsonpath='{.spec.template.spec.containers[0].image}'`).
 - Kubernetes version (`kubectl version --short`).
 - The full `Template` and `TemplateInstance` YAMLs (redact secrets).
 - The `status` of both CRs at the time of the failure.
 - Controller logs from around the time of the failure.
 - Any events for the affected resources (`kubectl get events -n <namespace>`).
 
-File the report at the [template-operator-v2 issues page](https://github.com/stakater-ab/template-operator-v2/issues).
+Raise the report through [Stakater Support](https://support.stakater.com/).

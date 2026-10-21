@@ -30,10 +30,7 @@ spec:
 
 ## Helm v3 vs v4
 
-`spec.helm.version` is `v3` or `v4`; defaults to `v4`. Both SDKs are linked into the controller, and `Template.spec.helm.version` is a runtime switch, there's no separate operator deployment per Helm version.
-
-!!! tip
-    Pick `v4` unless a chart relies on v3-specific behavior the v4 SDK doesn't replicate.
+`spec.helm.version` is `v3` or `v4`; defaults to `v3`. Both SDKs are linked into the controller, and `Template.spec.helm.version` is a runtime switch, there's no separate operator deployment per Helm version.
 
 ## Release name
 
@@ -94,6 +91,8 @@ The operator runs Helm in client-side dry-run mode (equivalent of `helm template
 - `IncludeCRDs: true`: CRDs in the chart are included.
 - `DisableOpenAPIValidation: true`: the API server does validation at apply time.
 - `Replace: true`: release name reuse is allowed.
+
+Helm hooks are not run. The operator applies only the release manifest, so resources that a chart defines as hooks (for example a `pre-install` Job) are not created.
 
 ## Validation at template-creation time
 

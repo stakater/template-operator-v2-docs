@@ -16,6 +16,12 @@ spec:
   parameters:
     - name: name
       required: true
+      exposeInStatus: true   # the output source name below reads it
+  targetNamespaces:
+    explicit:
+      allow:
+        literal:
+          - consumer-a
   gotemplate: |
     apiVersion: v1
     kind: Service
@@ -40,15 +46,34 @@ spec:
           jsonPath: "{.spec.clusterIP}"
 ```
 
-Once the cloud assigns an address, it appears on the instance:
+`exposeInStatus` matters here: under the default `sync.mode: off`, the instance freezes after its first apply and resolves `from.name` from the values recorded in `status.resolvedParameters` (see [Sync](../concepts/sync.md)).
+
+Anna binds it:
+
+```yaml
+apiVersion: templates.v2.stakater.com/v2alpha1
+kind: TemplateInstance
+metadata:
+  name: edge-service
+  namespace: consumer-a
+spec:
+  templateRef:
+    name: edge-service
+    namespace: provider
+  parameters:
+    - name: name
+      value: edge
+```
+
+Once the cloud assigns an address, it appears on the instance, keyed by the `Service` name:
 
 ```bash
 kubectl get templateinstance edge-service -n consumer-a \
-  -o jsonpath='{.status.outputs.endpoint}' | jq .
-# { "ip": "203.0.113.7", "clusterIP": "10.96.12.34" }
+  -o jsonpath='{.status.outputs}' | jq .
+# { "clusterIP": { "edge": "10.96.12.34" }, "ip": { "edge": "[\"203.0.113.7\"]" } }
 ```
 
-A field whose JSONPath matches nothing yet (the IP before the cloud assigns it) simply stays unresolved and is reflected on the `OutputsResolved` condition — it does not fail the instance.
+Until the cloud assigns an address, `ip` resolves to `"[]"` (an empty list). It does not fail the instance.
 
 ## Scenario 2: roll up the health of many rendered resources
 
@@ -67,8 +92,8 @@ When one instance renders several resources of a kind, `fromAll` keys an entry p
 ```
 
 ```bash
-kubectl get templateinstance <name> -n <ns> -o jsonpath='{.status.outputs.deployments}' | jq .
-# { "web": { "available": "3" }, "worker": { "available": "1" } }
+kubectl get templateinstance <name> -n <ns> -o jsonpath='{.status.outputs.available}' | jq .
+# { "web": "3", "worker": "1" }
 ```
 
 ## Notes

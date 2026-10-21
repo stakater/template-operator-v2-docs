@@ -10,6 +10,7 @@ Before installing, make sure you have:
 - Cluster-admin permissions. Installation creates a `Namespace`, two `CustomResourceDefinitions`, `ClusterRole` / `ClusterRoleBinding` objects, and a `Deployment`.
 - `kubectl` (or `oc` for OpenShift).
 - `helm` v3.x.
+- [cert-manager](https://cert-manager.io/docs/installation/) on the cluster. The operator always runs its admission webhook, and the chart issues the webhook's TLS certificate through cert-manager. On OpenShift, the service-ca operator can issue it instead; see [Install on OpenShift](./openshift.md#without-cert-manager).
 
 ## Custom resources installed
 
