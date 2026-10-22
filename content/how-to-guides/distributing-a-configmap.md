@@ -8,7 +8,7 @@ Bill maintains a CA bundle in a `ConfigMap` `ca-bundle` in the `provider` namesp
 
 ## The Template
 
-Two parameters: the source (GET mode — a named `objectFieldRef`) and the target namespaces (LIST mode). Both are watched, so a change to either re-renders.
+Two parameters: the source (GET mode — a named `objectFieldRef`) and the target namespaces (LIST mode). With `sync.mode: revert` or `strict`, both are watched, so a change to either re-renders. Under the default `sync.mode: off`, the instance is frozen after its first clean apply.
 
 ```yaml
 apiVersion: templates.v2.stakater.com/v2alpha1
@@ -36,7 +36,7 @@ spec:
     {{- end }}
     {{- end }}
   sync:
-    mode: revert     # a hand-edit of a copy converges back to the source
+    mode: revert     # required: source and namespace changes re-render; a hand-edit of a copy converges back
 ```
 
 ```yaml

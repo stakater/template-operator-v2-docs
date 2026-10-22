@@ -8,7 +8,7 @@ For the full catalogue of conditions and what each one means, see [Status](./con
 
 When something isn't working:
 
-1. **Read `status.phase`** with `kubectl get`. `Valid`/`Ready` means the operator is happy. `Invalid`, `Error`, or `Failed` means there's something to fix.
+1. **Read `status.phase`** with `kubectl get <kind> <name> -n <namespace> -o jsonpath='{.status.phase}'`. `Valid`/`Ready` means the operator is happy. `Invalid`, `Error`, or `Failed` means there's something to fix.
 1. **Read `status.conditions[]`** with `kubectl describe` or `kubectl get -o yaml`. Find the first condition with `status: False`. Its `reason` field is the key to the entry below.
 1. **Look up that reason** in the section for your CR (`Template` or `TemplateInstance`).
 1. **If nothing matches**, drop to [Operational](#operational) for issues that don't show up in `status`, or check the controller logs.
@@ -20,9 +20,6 @@ When something isn't working:
 kubectl describe template <name> -n <provider-namespace>
 kubectl describe templateinstance <name> -n <consumer-namespace>
 
-# Events for the CR (often shows the underlying error)
-kubectl get events -n <namespace> --field-selector involvedObject.name=<name>
-
 # Controller logs
 kubectl logs -n template-operator-system deploy/template-operator-v2-controller-manager
 
@@ -30,11 +27,11 @@ kubectl logs -n template-operator-system deploy/template-operator-v2-controller-
 kubectl get <kind> -A -l templates.v2.stakater.com/instance-uid=<uid>
 ```
 
-The instance UID is in `kubectl get templateinstance <name> -o jsonpath='{.metadata.uid}'`.
+The instance UID is in `kubectl get templateinstance <name> -n <consumer-namespace> -o jsonpath='{.metadata.uid}'`.
 
 ## Template
 
-### `Valid=False, Reason=ValidationFailed` or `SpecInvalid`
+### `Valid=False, Reason=ValidationFailed`
 
 **Cause**: `spec.gotemplate` or `spec.helm.valuesTemplate` failed to parse, or a structural invariant was violated. The `Message` quotes the parser error.
 
@@ -42,13 +39,13 @@ The instance UID is in `kubectl get templateinstance <name> -o jsonpath='{.metad
 
 ### `DryRunRendered=False, Reason=RenderFailed`
 
-**Cause**: the template parses but executing it with dummy values produces invalid YAML. Common culprits are missing whitespace inside `{{ }}`, a `range` or `if` that emits a fragment outside any document, or an unquoted string containing `:`.
+**Cause**: the template parses but executing it with the parameter defaults (placeholder values for a Helm template's parameters without one) produces invalid YAML. Common culprits are missing whitespace inside `{{ }}`, a `range` or `if` that emits a fragment outside any document, or an unquoted string containing `:`.
 
 **Resolution**: render the template locally with `helm template` (for Helm) or `gomplate` (for Go templates) using the same `.parameters` / `.instance` shape, and inspect the output.
 
 ### `DryRunRendered=False, Reason=DryRunSkipped`
 
-**Cause**: at least one parameter has no literal default, so a dry run with dummy values would not be representative. This is informational, not an error.
+**Cause**: the `Template` uses a Go template and at least one parameter has no literal default, so a dry run with placeholder values would not be representative. This is informational, not an error.
 
 **Resolution**: none. The `Template` is `Valid` overall; end-to-end validation happens when the first `TemplateInstance` references it.
 
@@ -73,7 +70,8 @@ The reconcile retries every 60 seconds, so transient registry outages self-heal.
 
 ```bash
 kubectl get templateinstances -A \
-  -o jsonpath='{range .items[?(@.spec.templateRef.name=="<template-name>")]}{.metadata.namespace}/{.metadata.name}{"\n"}{end}'
+  -o jsonpath='{range .items[?(@.spec.templateRef.namespace=="<provider-namespace>")]}{.metadata.namespace}/{.metadata.name} {.spec.templateRef.name}{"\n"}{end}' \
+  | grep ' <template-name>$'
 ```
 
 ## TemplateInstance
@@ -88,7 +86,7 @@ kubectl get templateinstances -A \
 
 **Cause**: the consumer namespace is not in `Template.spec.targetNamespaces`.
 
-**Resolution**: either widen the `Template`'s policy (add to `explicit.allow.literal`, or apply a matching label to the consumer namespace), or move the `TemplateInstance` to a permitted namespace. The operator re-reconciles when the `Template`, the `TemplateInstance`, or the namespace's labels change.
+**Resolution**: either widen the `Template`'s policy (add to `explicit.allow.literal`, or apply a matching label to the consumer namespace), or move the `TemplateInstance` to a permitted namespace. The operator re-reconciles when the `Template` or the `TemplateInstance` changes. A namespace label change does not trigger it: [force an immediate reconcile](#force-an-immediate-reconcile), or wait for the retry delay.
 
 ### `ParametersValid=False, Reason=ParameterResolutionFailed`
 
@@ -102,7 +100,7 @@ kubectl get templateinstances -A \
 
 ### `ParametersValid=False, Reason=InvalidParameter`
 
-**Cause**: a parameter failed type validation, a `required: true` parameter was not overridden, or the `TemplateInstance` referenced a parameter name that isn't declared on the `Template`. The `Message` identifies the offending parameter.
+**Cause**: a parameter failed type validation, a `required: true` parameter was not overridden, or the `TemplateInstance` referenced a parameter name that isn't declared on the `Template`. The `Message` identifies the offending parameter, except for an undeclared name (`parameter not defined in template`).
 
 **Resolution**: supply a value that matches the parameter's declared `type`, override every `required: true` parameter, and only reference declared parameter names.
 
@@ -165,15 +163,15 @@ kubectl annotate templateinstance <name> -n <namespace> \
 
 ### Failed orphan stuck in `status.renderedResources`
 
-**Cause**: a previously-rendered resource cannot be deleted. Most commonly another operator's webhook or finalizer is blocking the delete.
+**Cause**: a previously-rendered resource cannot be deleted. Most commonly the operator lacks the `delete` or `update` verb on that kind, or an admission webhook rejects the request. Another controller's finalizer does not block it.
 
-**Resolution**: inspect the resource's finalizers and any blocking admission webhooks. The operator retries deletion automatically once the obstacle is removed.
+**Resolution**: check the operator's RBAC for that kind and any blocking admission webhooks. The operator retries deletion automatically once the obstacle is removed.
 
 ### `TemplateInstance` stuck terminating
 
 **Cause**: the operator can't delete one or more rendered resources. The controller logs name the resource.
 
-**Resolution**: clear the underlying obstacle (a finalizer or rejecting webhook on the rendered resource), then the operator finishes the cleanup. If you must recover manually, see [Recovery procedures](#recovery-procedures).
+**Resolution**: clear the underlying obstacle (missing RBAC, or a rejecting webhook on the rendered resource), then the operator finishes the cleanup. If you must recover manually, see [Recovery procedures](#recovery-procedures).
 
 ## Recovery procedures
 
@@ -203,7 +201,7 @@ kubectl patch <kind> <name> -n <ns> \
 When opening an issue, attach:
 
 - Operator version (`kubectl get deploy template-operator-v2-controller-manager -n template-operator-system -o jsonpath='{.spec.template.spec.containers[0].image}'`).
-- Kubernetes version (`kubectl version --short`).
+- Kubernetes version (`kubectl version`).
 - The full `Template` and `TemplateInstance` YAMLs (redact secrets).
 - The `status` of both CRs at the time of the failure.
 - Controller logs from around the time of the failure.

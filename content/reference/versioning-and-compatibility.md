@@ -8,7 +8,7 @@ The custom resources are served at **`templates.v2.stakater.com/v2alpha1`**. An 
 
 ## Kubernetes version
 
-The CRDs carry a CEL validation rule on `objectFieldRef` that older Kubernetes cannot compile: they install on **Kubernetes 1.33+** (OpenShift 4.20+) and fail to install on 1.31. Match this in CI — the kind node image you test on must be 1.33 or newer.
+In chart 0.0.8 the CRDs carry a CEL validation rule on `objectFieldRef` that older Kubernetes cannot compile: they install on **Kubernetes 1.32+** (OpenShift 4.19+) and fail to install on 1.31. Releases after 0.0.8 install on **Kubernetes 1.29+**. Match this in CI — the kind node image you test on must meet the minimum for the chart version you pin.
 
 ## Pin the operator version
 
@@ -34,6 +34,6 @@ The point is not the specific versions but the discipline: **pin, read the [chan
 
 ## See also
 
-- [Changelog](../changelog.md) for what changed in each release.
+- [Changelog](../changelog.md) for the API-version history (per-release notes are not published yet).
 - [Testing Templates](../how-to-guides/testing-templates.md) for catching behavioural drift when you upgrade.
 - [API reference](./api.md) for the current schema.

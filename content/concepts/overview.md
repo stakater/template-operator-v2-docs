@@ -20,7 +20,7 @@ A `TemplateInstance` is the **consumer's** artifact. It lives in a consumer name
                                                           │
                                                           ▼
                                                 rendered Kubernetes resources
-                                                in the consumer namespace
+                                                (by default in the consumer namespace)
 ```
 
 ## Why two resources
@@ -29,7 +29,7 @@ The split keeps three concerns separate:
 
 - **Authorship**: the platform team owns the `Template` and curates the surface (parameters, allowed namespaces, drift policy).
 - **Consumption**: application teams own their `TemplateInstance` and supply environment-specific values.
-- **RBAC**: write access to a provider namespace is privileged; read-only access to it is enough to consume what's published there.
+- **RBAC**: write access to a provider namespace is privileged. Consumers need no access to it: the `Template`'s `targetNamespaces` decides which namespaces can use it.
 
 It also enables one-to-many fan-out: a single `Template` can be instantiated by any number of `TemplateInstance` resources, in any number of permitted namespaces, each with its own parameter values.
 
@@ -53,6 +53,7 @@ The remaining concept pages cover one top-level field each.
 | `Template.spec.parameters` | [Parameters](./parameters.md) | Inputs the template accepts, with optional typing and override rules. |
 | `Template.spec.targetNamespaces` | [Target namespaces](./target-namespaces.md) | Which consumer namespaces are permitted to instantiate. |
 | `Template.spec.sync` | [Sync](./sync.md) | Drift protection: `off`, `revert`, or `strict`. |
+| `Template.spec.outputs` | [Outputs](./outputs.md) | Named values read back from rendered resources into `status.outputs`. |
 | `TemplateInstance.spec.parameters` | [Parameters](./parameters.md#instance-side-overrides) | Consumer-side overrides, including dynamic `valueFrom` resolution. |
 | `status.*` | [Status](./status.md) | Phase, conditions, resolved parameters, rendered-resource list, tracked GVKs. |
 | Finalizers and cleanup | [Lifecycle](./lifecycle.md) | Dry-run gate, orphan cleanup, deletion semantics. |

@@ -6,7 +6,7 @@ Template Operator v2 ships as a single controller-manager Deployment. The same p
 
 | Name | Type | Description |
 |------|------|-------------|
-| `controller-manager` | Deployment | One pod (default replicas: 1) that runs both reconcilers, the Helm renderer pool, the dynamic-informer registry, and the metrics server. Leader election is enabled via `--leader-elect`. |
+| `template-operator-v2-controller-manager` | Deployment | One pod (default replicas: 1) that runs both reconcilers, the Helm renderer pool, and the dynamic-informer registry. The metrics server is off unless you add `--metrics-bind-address`. Leader election is enabled via `--leader-elect`. |
 | `Template` reconciler | Goroutine | Validates `Template` CRs: parses the Go template, dry-run renders it (when all parameters have literal defaults), and for Helm templates pulls the chart from the configured repository. |
 | `TemplateInstance` reconciler | Goroutine | Resolves parameters, renders the template, applies rendered resources via server-side apply, and tracks them in `status.renderedResources`. |
 | Helm renderer pool | In-process | Two `ChartRenderer` implementations (one for Helm v3 SDK, one for Helm v4 SDK) selected by `Template.spec.helm.version`. |
@@ -14,11 +14,12 @@ Template Operator v2 ships as a single controller-manager Deployment. The same p
 
 ## Watches
 
-The `TemplateInstance` controller watches three sources:
+The `TemplateInstance` controller watches four sources:
 
 - `TemplateInstance` itself (predicate: `GenerationChangedPredicate ∨ AnnotationChangedPredicate`).
-- `Template` (re-enqueues every `TemplateInstance` that references the changed `Template`).
-- A generic event channel fed by the dynamic informer registry for `valueFrom` source changes.
+- `Template` (re-enqueues every `TemplateInstance` that references the changed `Template`, except instances frozen under `sync.mode: off`).
+- `Namespace` label changes (re-enqueues instances whose `objectFieldRef.namespaceSelector` matches the namespace).
+- A generic event channel fed by the dynamic informer registry for `valueFrom` source changes, rendered-resource drift, and output sources.
 
 The `Template` controller watches only itself.
 

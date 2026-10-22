@@ -73,7 +73,7 @@ This is the pattern a provider uses to answer "is every rendered resource health
 
 ## The `OutputsResolved` condition
 
-Resolution is reported on the `TemplateInstance`'s `OutputsResolved` condition. A field whose JSONPath matches nothing, or whose source resource is absent, leaves that entry unresolved and is reflected there rather than failing the whole instance. See [Status](./status.md#conditions).
+Resolution is reported on the `TemplateInstance`'s `OutputsResolved` condition. A scalar JSONPath that matches nothing, or a `from` source that is absent, leaves that entry unresolved and is reflected there rather than failing the whole instance. A list query (with `[*]`, `..`, or a filter) that matches nothing resolves to `"[]"`, and `fromAll` or `forEach` with nothing to iterate resolves with no entries. See [Status](./status.md#conditions).
 
 ## `Kind: Secret` is refused
 

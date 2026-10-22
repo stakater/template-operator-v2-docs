@@ -8,7 +8,7 @@ Bill wants a `ConfigMap` called `cluster-info` in every namespace labelled `team
 
 ## 1. List the namespaces as a parameter
 
-A parameter resolved from an [`objectFieldRef`](../concepts/parameters.md#objectfieldref-get-vs-list) with **no `name`** runs in LIST mode: the operator lists the GVK, passes the whole list to the template, and **watches** it — so adding or removing a namespace re-renders the instance.
+A parameter resolved from an [`objectFieldRef`](../concepts/parameters.md#objectfieldref-get-vs-list) with **no `name`** runs in LIST mode: the operator lists the GVK, passes the whole list to the template, and, with `sync.mode: revert` or `strict`, **watches** it, so adding or removing a namespace re-renders the instance. Under the default `sync.mode: off`, the instance is frozen after its first clean apply.
 
 ```yaml
 apiVersion: templates.v2.stakater.com/v2alpha1

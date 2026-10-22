@@ -1,6 +1,6 @@
 # Target Namespaces
 
-`Template.spec.targetNamespaces` is the provider's policy on which consumer namespaces are allowed to instantiate the `Template`. The provider opts namespaces in; a consumer cannot self-elect. RBAC on the provider namespace is the boundary that protects the policy itself.
+`Template.spec.targetNamespaces` is the provider's policy on which consumer namespaces are allowed to instantiate the `Template`. The provider controls which namespaces are permitted. With an explicit list a consumer cannot self-elect; with a selector, whoever can edit the consumer namespace's labels controls the match. RBAC on the provider namespace is the boundary that protects the policy itself.
 
 ## The default
 
@@ -13,6 +13,8 @@ A `TemplateInstance`'s consumer namespace is permitted if **any** of these match
 1. The explicit allow-list contains the namespace name.
 1. The explicit allow-list is the wildcard `["*"]`.
 1. The label selector matches the consumer namespace's labels.
+
+An `explicit.deny` list without `allow` permits every namespace that is not in the list, and an empty `explicit: {}` permits every namespace.
 
 You can use either strategy, or both. They combine with OR semantics.
 
@@ -98,9 +100,7 @@ status:
     - type: TargetNamespaceAllowed
       status: "False"
       reason: NamespaceNotPermitted
-      message: |
-        Namespace team-x is not permitted to instantiate Template provider/foo-template.
-        Check Template's targetNamespaces configuration
+      message: Namespace team-x is not permitted to instantiate Template provider/foo-template. Check Template's targetNamespaces configuration
     - type: Ready
       status: "False"
       reason: NamespaceNotPermitted
@@ -110,7 +110,7 @@ The operator retries a refused instance after an increasing delay, and also reco
 
 ## RBAC required
 
-The operator's service account needs `get` on `Namespace` to read consumer-namespace labels for selector mode. This is pre-granted by the chart.
+The operator's service account needs `get`, `list`, and `watch` on `Namespace`. This is pre-granted by the chart.
 
 ## See also
 

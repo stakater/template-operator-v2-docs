@@ -7,7 +7,6 @@
 - You want one or two resources, not a full release.
 - The template is short enough to read inline in the `Template` YAML.
 - You don't need conditional sub-charts.
-- You want the operator's deletion to cleanly remove every rendered resource (Helm release state isn't managed; gotemplate output is tracked one resource at a time).
 
 ## Syntax
 

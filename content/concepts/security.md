@@ -29,9 +29,9 @@ The operator relies on three finalizers to enforce its lifecycle guarantees (see
 
 - Delete a `Template` while `TemplateInstance`s still reference it. Those instances then enter `TemplateResolved=False, Reason=TemplateNotFound` until they are deleted or pointed elsewhere.
 - Delete a `TemplateInstance` without triggering rendered-resource cleanup. The rendered resources stay in the cluster, no longer managed.
-- Delete a rendered resource directly. The orphan is still tracked in `status.renderedResources` until the next reconcile reconciles its absence.
+- Delete a rendered resource directly. With `sync.mode: revert` or `strict`, the next reconcile re-creates it. Under the default `sync.mode: off`, the instance is frozen after its first clean apply: the resource stays gone, its entry stays in `status.renderedResources`, and the instance stays `Ready`.
 
-The drift webhook handles these unreachable-by-design states by **allowing** the affected request rather than locking it: see [Sync webhook edge cases](./sync.md#webhook-edge-cases-strict-mode). The reasoning is that the resource is already in an inconsistent state with no normal recovery path; denying would lock it permanently.
+The drift webhook handles these states by **allowing** the affected request rather than locking it: see [Sync webhook edge cases](./sync.md#webhook-edge-cases-strict-mode). The reasoning is that the resource is already in an inconsistent state with no normal recovery path; denying would lock it permanently.
 
 Manually removing the operator's finalizers is unsupported and should be reserved for incident recovery.
 
@@ -39,8 +39,8 @@ Manually removing the operator's finalizers is unsupported and should be reserve
 
 Two paths exist to put an existing in-cluster resource under operator management:
 
-- **Annotation-based opt-in**: the user pre-stamps `templates.v2.stakater.com/instance-ref` and waits for the matching `TemplateInstance` to be created. This is the supported migration pattern.
-- **Implicit name-collision**: any rendered resource whose `apiVersion`/`kind`/`name`/`namespace` matches an existing in-cluster resource is silently adopted at apply time and **cascade-deleted** when the owning `TemplateInstance` is deleted.
+- **Annotation-based opt-in**: the user pre-stamps `templates.v2.stakater.com/instance-ref` and waits for the matching `TemplateInstance` to be created. This is the supported migration pattern. The annotation is optional: adoption happens because the render has the same identity.
+- **Implicit name-collision**: any rendered resource whose `apiVersion`/`kind`/`name`/`namespace` matches an existing in-cluster resource is silently adopted at apply time and **cascade-deleted** when the owning `TemplateInstance` is deleted, unless it carries `templates.v2.stakater.com/deletion-policy: Orphan` (or `helm.sh/resource-policy: keep`); the operator then releases it and leaves it in place.
 
 Both paths are documented in [Resource adoption](./lifecycle.md#resource-adoption). The implication for the security model: **a `Template`'s rendered resource names are unrestricted within the consumer's namespace**, and a misnamed template can silently take over and later delete an unrelated resource.
 
@@ -50,7 +50,7 @@ Both paths are documented in [Resource adoption](./lifecycle.md#resource-adoptio
 
 `targetNamespaces` controls which namespaces may **instantiate** a `Template` — not where its rendered resources go. A rendered manifest with an explicit `metadata.namespace` is applied to that namespace; one that omits it defaults to the consumer's (see [Default namespace](./gotemplate.md#default-namespace)). The operator applies every rendered resource with **its own service account**, so:
 
-**The RBAC of the service account the operator applies as is the boundary.** Grant it only the namespaces and resource kinds your Templates actually need — that is how you decide where resources may land, and who (by being allowed to author Templates in a provider namespace) can cause those writes. On default chart RBAC the operator can only manage `Template`s/`TemplateInstance`s and read `Namespace`s, so it is inert until you widen it; widen it deliberately and narrowly. This is intended behaviour, not a gap: scope the grant, not the template.
+**The RBAC of the service account the operator applies as is the boundary.** Grant it only the namespaces and resource kinds your Templates actually need — that is how you decide where resources may land, and who (by being allowed to author Templates in a provider namespace) can cause those writes. On default chart RBAC, the operator's `ClusterRole` lets it manage `Template`s/`TemplateInstance`s, read `Namespace`s, `get` `ServiceAccount`s, and `get`/`list` `ValidatingWebhookConfiguration`s (chart 0.0.8 grants neither of the last two). A leader-election `Role` in the operator's own namespace also grants full access to `ConfigMap`s and `Lease`s and `create`/`patch` on `Event`s, so a `Template` can already write those kinds into that namespace. Beyond that the operator is inert until you widen it; widen it deliberately and narrowly. This is intended behaviour, not a gap: scope the grant, not the template.
 
 !!! note "Per-instance service accounts"
     `TemplateInstance.spec.serviceAccountRef` names a `ServiceAccount` in the instance's namespace. The operator **impersonates** it to resolve `valueFrom` parameters and to watch their sources, so that account's RBAC limits what the instance can read. This needs an `impersonate` grant on `serviceaccounts` for the operator, which the chart does not ship. Applies still use the operator's own service account, so scope it as above.
@@ -97,7 +97,7 @@ spec:
 ## Secrets and credentials
 
 - The Helm chart-pull `Secret` referenced by `Template.spec.helm.chart.repository.auth.secretRef` lives in the **provider namespace**, never in the consumer namespace. Consumers never need access to registry credentials.
-- Parameters resolved through `valueFrom.secretKeyRef` are read at render time and never written back to the cluster, but the resolved value is passed to the template engine. The `valueFrom` reference is set on the `TemplateInstance`, and its namespace is not restricted: if the `Template` writes the parameter into a resource the instance author can read, that author can read any `Secret` the operator can read. Limit who may instantiate such `Template`s with `targetNamespaces`, or set `spec.serviceAccountRef` on the `TemplateInstance` so that `valueFrom` reads use that account's RBAC.
+- Parameters resolved through `valueFrom.secretKeyRef` are read at render time and are not written to status unless the `Template` marks that parameter `exposeInStatus: true`, but the resolved value is passed to the template engine. The `valueFrom` reference is set on the `TemplateInstance`, and its namespace is not restricted: if the `Template` writes the parameter into a resource the instance author can read, that author can read any `Secret` the operator can read. Limit who may instantiate such `Template`s with `targetNamespaces`, or require `spec.serviceAccountRef` with an admission policy so that `valueFrom` reads use that account's RBAC; the field is optional, and an instance without it reads with the operator's identity.
 - Parameters marked `exposeInStatus: true` write their resolved value to `status.resolvedParameters[].value`. Never set `exposeInStatus` on a parameter resolved from a `Secret`.
 
 ## See also

@@ -55,8 +55,8 @@ oc get crd | grep templates.v2.stakater.com
 Expected output:
 
 ```console
-templates.templates.v2.stakater.com
-templateinstances.templates.v2.stakater.com
+templateinstances.templates.v2.stakater.com   <creation-timestamp>
+templates.templates.v2.stakater.com           <creation-timestamp>
 ```
 
 ## Uninstalling

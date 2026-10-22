@@ -6,7 +6,7 @@
 
 | Field | Type | Default | Purpose |
 |-------|------|---------|---------|
-| `type` | enum: `string`, `number`, `bool`, `array`, `object` | unset | Validate that the literal default and any instance override parse to the declared type. |
+| `type` | enum: `string`, `number`, `bool`, `array`, `object` | unset | Validate that the literal default and any instance override match the declared type. For `array` and `object`, an instance `value` is always rejected; use the `Template` default or an `objectFieldRef` that resolves to a list or map. |
 | `required` | bool | `false` | When `true`, the consuming `TemplateInstance` MUST provide a value (regardless of any `Template` default). |
 | `disableOverride` | bool | `false` | When `true`, the consuming `TemplateInstance` MUST NOT supply its own value for this parameter. |
 | `exposeInStatus` | bool | `false` | When `true`, the resolved value is written to `status.resolvedParameters[].value` for inspection. |
@@ -67,7 +67,7 @@ status:
     - type: ParametersValid
       status: "False"
       reason: InvalidParameter
-      message: "parameter \"replicas\" type mismatch: expected number, got \"two\""
+      message: "parameter \"replicas\": expected number, got \"two\""
 ```
 
 ## Required parameters
@@ -99,7 +99,7 @@ status:
 
 ## Status visibility
 
-By default, `status.resolvedParameters[]` only records each parameter's name, plus the source reference for a `valueFrom` parameter. The resolved value itself is not written to status; useful when values are credentials.
+By default, `status.resolvedParameters[]` records each parameter's name, the source reference for a `valueFrom` parameter, and `usedDefault`/`fallbackReason` when a `valueFrom` fell back to `defaultValue`. The resolved value itself is not written to status; useful when values are credentials.
 
 Set `exposeInStatus: true` on a parameter to also record the resolved value:
 
@@ -123,7 +123,10 @@ Treat `exposeInStatus` as a public-information signal. Never set it on parameter
 |-----------|--------|------|
 | `ParametersValid` | `InvalidParameter` | Type mismatch on literal default; type mismatch on resolved override; missing `required` parameter; unknown parameter on instance. |
 | `ParametersValid` | `OverrideNotAllowed` | Instance attempts to override a `disableOverride: true` parameter. |
-| `ParametersValid` | `ParameterResolutionFailed` | A `valueFrom` source could not be resolved. |
+| `ParametersValid` | `ParameterResolutionFailed` | A `valueFrom` source could not be read and no `defaultValue` applies. |
+| `ParametersValid` | `ParameterAccessDenied` | The resolving identity may not read a `valueFrom` source (403) and no `defaultValue` applies. |
+| `ParametersValid` | `NamespaceSelectorMatchedZero` | A `namespaceSelector` matched no namespaces and no `defaultValue` applies. |
+| `ParametersValid` | `ServiceAccountNotFound`, `ImpersonationNotPermitted` | `spec.serviceAccountRef` cannot be used. |
 | `ParametersValid` | `AllParametersResolved` | All parameters resolved successfully. |
 
 ## Adopting these fields incrementally

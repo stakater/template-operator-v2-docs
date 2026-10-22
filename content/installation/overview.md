@@ -6,7 +6,7 @@ Template Operator v2 is installed via its Helm chart. The same chart targets van
 
 Before installing, make sure you have:
 
-- A Kubernetes cluster (v1.24 or higher), or any supported OpenShift version.
+- A Kubernetes cluster (v1.32 or higher), or OpenShift 4.19 or higher, for chart 0.0.8. Releases after 0.0.8 need Kubernetes v1.29 or higher.
 - Cluster-admin permissions. Installation creates a `Namespace`, two `CustomResourceDefinitions`, `ClusterRole` / `ClusterRoleBinding` objects, and a `Deployment`.
 - `kubectl` (or `oc` for OpenShift).
 - `helm` v3.x.
@@ -21,7 +21,7 @@ Installation registers two CRDs in the API group `templates.v2.stakater.com`, ve
 
 ## Default namespace
 
-The operator is intended to run in `template-operator-system`. The Helm chart creates this namespace if it doesn't exist.
+The operator is intended to run in `template-operator-system`. The `--create-namespace` flag of `helm install` creates this namespace if it doesn't exist.
 
 ## Already running Multi-Tenant Operator?
 

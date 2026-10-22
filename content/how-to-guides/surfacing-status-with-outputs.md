@@ -99,7 +99,7 @@ kubectl get templateinstance <name> -n <ns> -o jsonpath='{.status.outputs.availa
 ## Notes
 
 - An array or object result is JSON-encoded into the status string (`{.status.loadBalancer.ingress[*].ip}` → `'["203.0.113.7"]'`); a scalar is stored as-is.
-- A `Secret` may not be an output source, so secret material can never be copied into status.
+- A `Secret` may not be an output source. Status can still carry secret material: a parameter with `exposeInStatus: true` that is bound with `secretKeyRef` shows its value in `status.resolvedParameters`, and an output can read a non-`Secret` resource that holds a secret value.
 
 ## See also
 

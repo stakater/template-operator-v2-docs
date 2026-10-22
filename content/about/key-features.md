@@ -39,9 +39,9 @@ Both engines see the same context object:
 | ConfigMap | `valueFrom.configMapKeyRef` | A specific key |
 | Any resource | `valueFrom.objectFieldRef` | A JSONPath expression evaluated against the resource (GET mode) or against a list of resources (LIST mode, when `name` is omitted) |
 
-`objectFieldRef` returns a scalar in GET mode; it always returns a list in LIST mode so templates can `{{range}}` safely. With `sync.mode: revert` or `strict`, the operator dynamically watches every resource referenced by `valueFrom`, and re-reconciles the `TemplateInstance` when the source changes.
+`objectFieldRef` returns the JSONPath result in GET mode (a scalar, or a list or object when the path selects one or matches several values); it always returns a list in LIST mode so templates can `{{range}}` safely. With `sync.mode: revert` or `strict`, the operator dynamically watches every resource referenced by `valueFrom`, and re-reconciles the `TemplateInstance` when the source changes.
 
-A `defaultValue` may be set on each `TemplateInstance` parameter; it is used only when paired with `valueFrom`, and applies whenever the `valueFrom` resolution fails (missing resource, missing key, JSONPath error, and so on).
+A `defaultValue` may be set on each `TemplateInstance` parameter; it is used only when paired with `valueFrom`, and applies when the `valueFrom` resolution fails (missing resource, missing key, denied access, JSONPath error, and so on). API server errors (timeouts, 5xx) and an invalid or cluster-scoped `namespaceSelector` still fail the instance.
 
 ## Target namespace control
 
@@ -59,7 +59,7 @@ If a `TemplateInstance` is created in a non-permitted namespace, the controller 
 
 - Every rendered resource carries a finalizer (`templates.v2.stakater.com/template-instance-resource`) so the operator can clean up before the API server garbage-collects.
 - `Template` deletion is **blocked** while any `TemplateInstance` references it, the controller publishes the `Deleting` condition with reason `DeletionBlocked`.
-- `TemplateInstance` deletion sweeps every resource recorded in `status.renderedResources`, removes the finalizer, then removes its own finalizer.
+- `TemplateInstance` deletion deletes every resource recorded in `status.renderedResources` and removes the finalizer, unless the resource carries `templates.v2.stakater.com/deletion-policy: Orphan` (or `helm.sh/resource-policy: keep`); the operator then releases it and leaves it in place. Then the operator removes the instance's own finalizer.
 
 ## Status reporting
 
@@ -83,4 +83,4 @@ The `Template` controller dry-run renders new and updated templates as soon as t
 - `SourceAccessible`, for Helm: chart could be pulled.
 - `DryRunRendered`, render produces valid YAML.
 
-Dry-run is skipped when any parameter has no literal default value (since the runtime type cannot be guessed safely).
+For a Go template, dry-run is skipped when any parameter has no literal default value (since the runtime type cannot be guessed safely). A Helm template is always dry-run; parameters without a default get placeholder values.

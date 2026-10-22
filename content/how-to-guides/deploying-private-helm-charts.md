@@ -129,4 +129,6 @@ status:
       message: "source access failed: failed to pull chart ... unauthorized"
 ```
 
+For a missing `Secret` the message reads `source access failed: failed to get auth secret <name> in namespace <namespace>: ...`.
+
 The reconcile is retried after 60 seconds, so rotating credentials in-place is non-disruptive.

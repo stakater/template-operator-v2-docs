@@ -108,14 +108,13 @@ kubectl apply -f templateinstance.yaml
 Confirm the instance is `Ready`:
 
 ```bash
-kubectl -n team-a get templateinstance my-app
+kubectl -n team-a get templateinstance my-app -o jsonpath='{.status.phase}'
 ```
 
 Expected output:
 
 ```console
-NAME     PHASE
-my-app   Ready
+Ready
 ```
 
 The rendered `Pod` is now in `team-a`:
@@ -157,7 +156,7 @@ status:
 
 ## 4. Updating
 
-With `sync.mode: revert` or `strict`, editing the `TemplateInstance`'s parameters re-renders, and editing the `Template` re-renders every `TemplateInstance` that references it. In both cases, resources that were rendered before but not after are deleted.
+With `sync.mode: revert` or `strict`, editing the `TemplateInstance`'s parameters re-renders, and editing the `Template` re-renders every `TemplateInstance` that references it. In both cases, a resource that was rendered before but not after is deleted, unless it carries `templates.v2.stakater.com/deletion-policy: Orphan` (or `helm.sh/resource-policy: keep`); the operator then releases it and leaves it in place.
 
 This `Template` uses the default `sync.mode: off`, so after the first clean apply the instance is frozen and neither edit is applied. See [Sync](../concepts/sync.md).
 
@@ -167,6 +166,6 @@ This `Template` uses the default `sync.mode: off`, so after the first clean appl
 kubectl -n team-a delete templateinstance my-app
 ```
 
-Every resource in `status.renderedResources` is deleted, the operator's finalizer is stripped, then the `TemplateInstance`'s own finalizer is removed.
+Every resource in `status.renderedResources` is deleted and the operator's finalizer is stripped, then the `TemplateInstance`'s own finalizer is removed. A resource that carries `templates.v2.stakater.com/deletion-policy: Orphan` (or `helm.sh/resource-policy: keep`) is not deleted; the operator releases it and leaves it in place.
 
 To delete the `Template`, first delete every `TemplateInstance` that references it. Otherwise the deletion is held with `Deleting=False, Reason=DeletionBlocked`.

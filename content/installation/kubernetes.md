@@ -4,7 +4,7 @@ This guide covers installing and uninstalling Template Operator v2 on a vanilla 
 
 ## Requirements
 
-- A Kubernetes cluster, v1.24 or higher.
+- A Kubernetes cluster, v1.32 or higher for chart 0.0.8. Releases after 0.0.8 need v1.29 or higher.
 - [Helm](https://helm.sh/docs/intro/install/) v3.x.
 - [kubectl](https://kubernetes.io/docs/tasks/tools/).
 - [cert-manager](https://cert-manager.io/docs/installation/), installed before the chart. The chart issues the operator's webhook certificate through it.
@@ -21,7 +21,7 @@ helm install template-operator-v2 \
 ```
 
 !!! note
-    `template-operator-system` is the recommended namespace; the chart's manifests reference it by default.
+    `template-operator-system` is the recommended namespace; the chart installs into the namespace you pass with `--namespace`.
 
 Wait for the controller to come up:
 
@@ -33,7 +33,7 @@ The deployment is named `template-operator-v2-controller-manager` and should rea
 
 ## Granting permissions to rendered kinds
 
-The chart's `ClusterRole` lets the operator manage only its own CRDs and read `Namespace`s. Before a `TemplateInstance` can render, grant the operator every kind your `Template`s render, and every kind a parameter reads through `valueFrom` (including `Secret`s and `ConfigMap`s). Add the rules through `rbac.additionalRules`:
+The chart's RBAC covers only the operator's own CRDs and its own operation, such as reading `Namespace`s and leader election in its namespace. Before a `TemplateInstance` can render, grant the operator every kind your `Template`s render, and every kind a parameter reads through `valueFrom` (including `Secret`s and `ConfigMap`s). Add the rules through `rbac.additionalRules`:
 
 ```yaml
 # values.yaml
@@ -68,8 +68,8 @@ kubectl get crds | grep templates.v2.stakater.com
 Expected output:
 
 ```console
-templates.templates.v2.stakater.com
-templateinstances.templates.v2.stakater.com
+templateinstances.templates.v2.stakater.com   <creation-timestamp>
+templates.templates.v2.stakater.com           <creation-timestamp>
 ```
 
 ## Uninstalling

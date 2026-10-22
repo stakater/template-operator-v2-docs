@@ -1,6 +1,6 @@
 # Composing TemplateInstances
 
-A `Template` can render **`TemplateInstance`s** — a parent that fans out to one child instance per item, where each child renders the real resources. This is the pattern platform integrations are built on: it gives every item its own status, isolates failures, and keeps the watch count flat.
+A `Template` can render **`TemplateInstance`s** — a parent that fans out to one child instance per item, where each child renders the real resources. This is the pattern platform integrations are built on: it gives every item its own status, isolates failures, and keeps the parent's own watches fixed. Each child still watches the resources it renders, in their namespaces.
 
 ## When to reach for it
 
@@ -81,7 +81,7 @@ spec:
     mode: revert
 ```
 
-Bind the parent with a LIST of namespaces, exactly as in [the fan-out guide](./rendering-to-many-namespaces.md#2-bind-it-listing-all-namespaces). The operator creates a child `TemplateInstance` per `team` namespace, each of which renders its `ResourceQuota`. The `deletionTimestamp` check drops the child when its namespace is being deleted; without it, the `strict` child would block the namespace deletion.
+Bind the parent with a `TemplateInstance` named `namespace-quota-parent` in `provider`, with `templateRef` `namespace-quota-parent` and the same LIST parameter as in [the fan-out guide](./rendering-to-many-namespaces.md#2-bind-it-listing-all-namespaces). The operator creates a child `TemplateInstance` per `team` namespace, each of which renders its `ResourceQuota`. The `deletionTimestamp` check drops the child when its namespace is being deleted; without it, the `strict` child would block the namespace deletion.
 
 ## One place to read health
 

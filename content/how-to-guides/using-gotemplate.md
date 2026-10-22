@@ -72,12 +72,12 @@ spec:
     data:
       uppercased: {{ .parameters.name | upper | quote }}
       generated: {{ now | date "2006-01-02" }}
-      hash: {{ .parameters.name | sha256sum | trunc 8 }}
+      hash: {{ .parameters.name | sha256sum | trunc 8 | quote }}
 ```
 
 ## Iterating over list-valued parameters
 
-When a parameter is resolved via `objectFieldRef` in LIST mode, the value is always a list. Iterate with `range`:
+When a parameter is resolved via `objectFieldRef` in LIST mode, the value is a list. A JSONPath that matches nothing (for example `.items[*].metadata.name` with no objects) fails the parameter, and a `defaultValue` fallback is a string, not a list. Use `jsonPath: .items` when the list can be empty. Iterate with `range`:
 
 ```yaml
 spec:
@@ -100,7 +100,7 @@ spec:
 When the `Template` is created or updated, the controller:
 
 1. Parses the template string. A parse error sets `Valid=False, Reason=ValidationFailed`.
-1. If every parameter has a literal `value`, the controller dry-run renders the template with those values and validates the YAML output. Any rendering or YAML validation error sets `DryRunRendered=False, Reason=RenderFailed`.
+1. If every parameter has a literal `value`, the controller dry-run renders the template with those values and validates the YAML output. Any rendering or YAML validation error sets `DryRunRendered=False, Reason=RenderFailed`. The dry-run does not use `missingkey=error`, so a reference to a missing key passes here and fails only when a `TemplateInstance` renders.
 1. If even one parameter is dynamic (no literal `value`), the dry-run is skipped and the controller sets `DryRunRendered=False, Reason=DryRunSkipped`. The `Template` is still considered `Valid` overall.
 
 This means a `Template` with parameters that are resolved at the `TemplateInstance` level will not be dry-run rendered at template-creation time. The first end-to-end validation happens when the first `TemplateInstance` is created.

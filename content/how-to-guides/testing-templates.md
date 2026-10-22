@@ -39,7 +39,7 @@ func Render(src string, params map[string]any) (string, error) {
         return "", err
     }
     var out bytes.Buffer
-    ctx := map[string]any{"parameters": params, "instance": map[string]any{"name": "x", "namespace": "x"}}
+    ctx := map[string]any{"parameters": params, "instance": map[string]any{"name": "x", "namespace": "x", "labels": map[string]string{}}}
     err = t.Execute(&out, ctx)
     return out.String(), err
 }

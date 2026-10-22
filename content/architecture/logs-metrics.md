@@ -4,10 +4,10 @@ This page describes the operator's runtime signals: structured logs and the metr
 
 ## Logs
 
-The operator uses controller-runtime's structured logger. Every reconcile loop logs at info level on success and error level on failure, with structured fields for `name`, `namespace`, and resource identity. Notable messages:
+The operator uses controller-runtime's structured logger. Reconciles log at info level on success and, for most failures, at error level, with structured fields for `name`, `namespace`, and resource identity. Some failures (for example `TemplateNotFound`) show only in status. Notable messages:
 
 - `Added finalizer to Template/TemplateInstance`, first-pass after a new resource is observed.
-- `Successfully validated Template`, Template controller finished a happy path.
+- `Successfully validated Template` (Go template) or `Successfully validated Helm Template` (Helm), Template controller finished a happy path.
 - `Skipping dry-run render: template has parameters without literal values that will be resolved at runtime`, explains why `DryRunRendered` is `False/DryRunSkipped`.
 - `Cannot delete Template - still in use by TemplateInstances`, explains why a `Template` deletion is held.
 - `Successfully reconciled TemplateInstance`, instance happy path.

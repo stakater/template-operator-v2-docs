@@ -12,7 +12,7 @@ By default a `TemplateInstance` is "fire-and-forget": rendered resources are app
 | `revert` | yes | no |
 | `strict` | yes | yes |
 
-The chart installs the admission webhook in every mode, and it sees every rendered resource; it denies a change only when the owning `Template` uses `strict`. Because the webhook uses `failurePolicy: Fail`, the API server rejects UPDATE and DELETE on rendered resources in every mode while the operator is down.
+The chart installs the admission webhook in every mode, and it sees every rendered resource; it denies a change when the owning `Template` uses `strict`, and in every mode when the `instance-ref` annotation is malformed or the owner lookup fails. Because the webhook uses `failurePolicy: Fail`, the API server rejects UPDATE and DELETE on rendered resources in every mode while the operator is down.
 
 ```yaml
 spec:
@@ -64,11 +64,11 @@ Everything `revert` does, plus a `ValidatingWebhookConfiguration` that intercept
 
 - Always allows the operator's own service account through (otherwise the operator's own reverts would block themselves).
 - Rejects DELETE on managed resources unless their owning `TemplateInstance` is itself being deleted.
-- Rejects UPDATE if the change touches any field outside `sync.ignoreFields`.
+- Rejects UPDATE if the change touches any field outside `sync.ignoreFields` and the server-managed fields. With an empty `ignoreFields` list, it rejects every UPDATE, even one that changes nothing.
 
 Users get an immediate API error at admission time rather than a delayed revert.
 
-The webhook is a single, **cluster-wide** `ValidatingWebhookConfiguration`, shared by every `strict` `Template`. It matches UPDATE/DELETE on all resources but narrows to managed ones with a `matchConditions` filter on the operator's ownership label, so it only evaluates objects the operator owns. The published Helm chart ships it with that filter in place; take care if you render the chart's manifests yourself, because a build of the webhook without that filter intercepts every write in the cluster.
+The webhook is a single, **cluster-wide** `ValidatingWebhookConfiguration`, shared by every `strict` `Template`. It matches UPDATE/DELETE on all resources but narrows to managed ones with a `matchConditions` filter on the operator's ownership label, so it only evaluates objects that carry the `templates.v2.stakater.com/instance` label. The published Helm chart ships it with that filter in place; take care if you render the chart's manifests yourself, because a build of the webhook without that filter intercepts every write in the cluster.
 
 **Usage**: for mandatory policy resources such as `NetworkPolicy`, `RoleBinding`, or image-pull `Secret`s, where edits should be impossible, not just transient.
 
@@ -101,7 +101,7 @@ The operator always excludes server-managed metadata from the drift comparison e
 
 ## Ownership metadata used by sync
 
-When `sync` is enabled, every rendered resource is stamped with:
+In every sync mode, every rendered resource is stamped with:
 
 | Metadata | Key | Value |
 |----------|-----|-------|
@@ -110,7 +110,7 @@ When `sync` is enabled, every rendered resource is stamped with:
 
 The webhook keys off both. `instance-ref` lets it find the owning `TemplateInstance` (and through it, the `Template`'s sync config) without listing.
 
-These are separate from the orphan-cleanup ownership labels (`instance-uid` / `instance-name` / `instance-namespace`) covered in [Lifecycle](./lifecycle.md).
+Orphan cleanup uses the other ownership labels (`instance-uid` / `instance-name` / `instance-namespace`), covered in [Lifecycle](./lifecycle.md).
 
 ## The `Synced` condition
 
@@ -122,7 +122,7 @@ status:
     - type: Synced
       status: "True"
       reason: SyncActive
-      message: "drift watches and enforcement are active"
+      message: "Sync is active; rendered resources are being watched for drift"
 ```
 
 `Ready` continues to reflect overall reconciliation success. A failed drift revert surfaces through the existing `Applied=False, Reason=ApplyFailed`.
@@ -135,17 +135,17 @@ The webhook server needs TLS. The chart always runs the webhook, so every instal
 
 ## Webhook edge cases (strict mode)
 
-The validating webhook has two paths where it intentionally **allows** a request that you might expect it to reject. Both are unreachable through normal operation, but understanding them matters for the [security model](./security.md).
+The validating webhook has two paths where it intentionally **allows** a request that you might expect it to reject. Understanding them matters for the [security model](./security.md).
 
 ### Owning Template not found
 
-If the webhook fires on a managed resource and finds the owning `TemplateInstance`, but the referenced `Template` is gone, the webhook allows the request. The sync mode cannot be determined without the `Template`, and denying would permanently lock the resource. This state is only reachable if the `Template`'s finalizer has been manually removed.
+If the webhook fires on a managed resource and finds the owning `TemplateInstance`, but the referenced `Template` is gone, the webhook allows the request. The sync mode cannot be determined without the `Template`, and denying would permanently lock the resource. This state is reachable if the `Template`'s finalizer has been manually removed.
 
 ### Owning TemplateInstance not found
 
-If the `templates.v2.stakater.com/instance-ref` annotation on a managed resource points at a `TemplateInstance` that no longer exists, the webhook allows the request. No owner means no enforcement is possible. Same root cause as above: a finalizer was bypassed manually, or the resource was created with an `instance-ref` pointing at a not-yet-existing `TemplateInstance` (the supported [adoption path](./lifecycle.md#opt-in-pre-stamp-the-instance-ref-annotation)).
+If the `templates.v2.stakater.com/instance-ref` annotation on a managed resource points at a `TemplateInstance` that no longer exists, the webhook allows the request. No owner means no enforcement is possible. This happens when a finalizer was bypassed manually, or when the resource was created with an `instance-ref` pointing at a not-yet-existing `TemplateInstance` (the supported [adoption path](./lifecycle.md#opt-in-pre-stamp-the-instance-ref-annotation)).
 
-In both cases, the controller's normal reconcile path will still surface the issue via the affected `TemplateInstance`'s status.
+When the `Template` is missing, the `TemplateInstance` reports `TemplateResolved=False` with reason `TemplateNotFound`. When the `TemplateInstance` is missing, no status reports the resource.
 
 ## Disabling sync
 

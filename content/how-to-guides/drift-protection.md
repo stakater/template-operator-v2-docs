@@ -2,8 +2,8 @@
 
 Examples of configuring `Template.spec.sync` to control drift on rendered resources. For the three modes, the comparison rules, and what each one does internally, see [Sync](../concepts/sync.md).
 
-!!! warning "Cert-manager prerequisite"
-    `sync.mode: strict` requires cert-manager to be installed on the cluster, since the operator's validating webhook needs TLS. The Helm chart provisions a self-signed `Issuer` and a `Certificate`, but it does not install cert-manager itself.
+!!! warning "Webhook certificate"
+    `sync.mode: strict` relies on the operator's validating webhook, which needs a TLS certificate. The install provides it through cert-manager by default, or through the OpenShift service-ca operator. See [Installation](../installation/overview.md#prerequisites) and [Without cert-manager](../installation/openshift.md#without-cert-manager).
 
 ## Scenario 1: enforce a baseline NetworkPolicy (strict)
 
@@ -29,6 +29,10 @@ spec:
             - namespaceSelector:
                 matchLabels:
                   kind: tenant
+  targetNamespaces:
+    selector:
+      matchLabels:
+        kind: tenant
   sync:
     mode: strict
 ```
@@ -37,7 +41,7 @@ An attempt by a consumer to `kubectl edit` the rendered `NetworkPolicy` is rejec
 
 ## Scenario 2: keep a Deployment in sync but let HPA scale it (revert + ignoreFields)
 
-Bill publishes a `Deployment` and wants the rendered shape preserved on every reconcile, but Anna runs a `HorizontalPodAutoscaler` against it. Strict mode would block HPA's updates to `spec.replicas`. Revert mode plus `ignoreFields` is the right tool.
+Bill publishes a `Deployment` and wants the rendered shape preserved on every reconcile, but Anna runs a `HorizontalPodAutoscaler` against it. HPA scales through the `/scale` subresource, which the webhook does not intercept, but in strict or revert mode the operator reverts the new replica count on the next reconcile when the template renders `spec.replicas`. Revert mode plus `ignoreFields` is the right tool.
 
 ```yaml
 spec:
@@ -52,7 +56,7 @@ spec:
       - metadata.annotations
 ```
 
-The controller reverts any drift in the rest of the `Deployment` spec on the next reconcile, but leaves `spec.replicas` and `metadata.annotations` to whoever last wrote them.
+The controller reverts drift in the fields the template renders, except `spec.replicas` and `metadata.annotations`. It does not revert edits to fields the template does not render. Leave `spec.replicas` out of the rendered `Deployment`: `ignoreFields` only skips drift detection, and any re-apply writes the rendered value back.
 
 ## Scenario 3: bootstrap a resource that another controller will own (off)
 

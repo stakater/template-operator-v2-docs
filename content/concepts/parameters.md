@@ -41,10 +41,10 @@ A `TemplateParameterDefinition` is the shape of one entry in `Template.spec.para
 
 `type` is a validation hint:
 
-- `string`: any value is accepted.
+- `string`: any scalar value is accepted. A list or map is rejected.
 - `number`: must parse via Go's `strconv.ParseFloat` (e.g. `"3"`, `"3.14"`, `"-2.5e10"` are accepted; `"three"` is rejected).
 - `bool`: must parse via `strconv.ParseBool` (e.g. `"true"`, `"false"`, `"1"`, `"0"` are accepted; `"yes"` is rejected).
-- `array` / `object`: the value must be a JSON array / object. A plain string never satisfies them.
+- `array` / `object`: only a list / map satisfies them, from a `Template` `value` or an `objectFieldRef`. A string is always rejected, even when it holds JSON, so literal, `Secret`, and `ConfigMap` overrides cannot fill these types.
 
 !!! important
     When an `objectFieldRef` resolves to a list or map, it cannot satisfy a scalar `type` such as `string`. Use `array` or `object` for those.
@@ -63,7 +63,7 @@ A `disableOverride: true` parameter is read-only from the consumer's point of vi
 
 ### `exposeInStatus` semantics
 
-By default `status.resolvedParameters[]` only records the *source* of each parameter (which literal, or which `valueFrom`). The resolved value itself is **not** written to status; useful when values may be secrets.
+By default `status.resolvedParameters[]` records only each parameter's name and, for a `valueFrom` override, the source reference (plus `usedDefault` and `fallbackReason` after a fallback to `defaultValue`). The resolved value itself is **not** written to status; useful when values may be secrets.
 
 `exposeInStatus: true` opts a specific parameter into having its resolved value written to `status.resolvedParameters[].value`.
 
@@ -101,7 +101,7 @@ valueFrom:
 
 `objectFieldRef` evaluates a JSONPath against any cluster resource, identified by GVK.
 
-**GET mode**, when `name` is set, the operator GETs that one resource and evaluates the JSONPath against it. Returns a scalar.
+**GET mode**, when `name` is set, the operator GETs that one resource and evaluates the JSONPath against it. Returns the matched value: a scalar, or a list or map when the JSONPath selects one or matches several fields.
 
 ```yaml
 valueFrom:
@@ -113,7 +113,7 @@ valueFrom:
     jsonPath: .status.loadBalancer.ingress[0].ip
 ```
 
-**LIST mode**, when `name` is omitted, the operator LISTs all resources of the GVK and evaluates the JSONPath against the list. **Always returns a list**, even for single matches, so templates can `{{range}}` safely.
+**LIST mode**, when `name` is omitted, the operator LISTs all resources of the GVK and evaluates the JSONPath against the list. **Returns a list** for one or more matches, even for a single match, so templates can `{{range}}` safely. If nothing matches, resolution fails (or uses `defaultValue`).
 
 ```yaml
 valueFrom:
@@ -126,8 +126,10 @@ valueFrom:
 
 Namespace scoping for `objectFieldRef`:
 
-- Set → operate in that namespace only.
-- Omitted → for namespaced GVKs, operate across all namespaces; for cluster-scoped GVKs, the field is ignored.
+- `namespace` set → operate in that namespace only.
+- `namespaceSelector` set (LIST mode only) → operate in every matching namespace.
+- Neither set → operate across all namespaces.
+- For cluster-scoped GVKs, `namespace` is ignored.
 
 GET mode always requires a namespace for namespaced GVKs.
 
@@ -138,7 +140,7 @@ JSONPath rules:
 
 ### `defaultValue` semantics
 
-`defaultValue` is used only when paired with `valueFrom`, and applies whenever the `valueFrom` resolution **fails** for any reason: the resource doesn't exist, the key is missing, the GVK can't be mapped, the JSONPath matches nothing, and so on.
+`defaultValue` is used only when paired with `valueFrom`, and applies when the `valueFrom` resolution **fails** because the resource doesn't exist, access is denied, the key is missing, the GVK can't be mapped, the JSONPath matches nothing, or a `namespaceSelector` matches no namespace. Operational errors (API server unreachable, timeouts) and `namespaceSelector` spec errors are not masked. An empty `defaultValue` (`""`) is not used.
 
 ```yaml
 valueFrom:
@@ -158,11 +160,11 @@ For every `valueFrom` source, the operator registers a watch via its dynamic inf
 
 This applies to `sync.mode: revert` and `strict` only. With `sync.mode: off`, the instance freezes after its first clean apply: the parameter watches are released, and source changes no longer propagate — see [Sync](sync.md).
 
-If the GVK referenced by an `objectFieldRef` cannot be resolved (for example, a CRD that isn't installed), the operator skips setting up a watch for that source. Parameter resolution will still fail at reconcile time, surfaced as `ParametersValid=False, Reason=ParameterResolutionFailed`.
+If the GVK referenced by an `objectFieldRef` cannot be resolved (for example, a CRD that isn't installed), the operator skips setting up a watch for that source. Without a `defaultValue`, parameter resolution fails at reconcile time, surfaced as `ParametersValid=False, Reason=ParameterResolutionFailed`. With one, the default is used.
 
 ## RBAC
 
-The operator's service account needs `get`, `list`, and `watch` on every GVK referenced by `objectFieldRef`. The chart grants only `Namespace` reads: grant every kind referenced by `secretKeyRef`, `configMapKeyRef`, or `objectFieldRef` through the chart's `rbac.additionalRules`. See [Granting permissions to rendered kinds](../installation/kubernetes.md#granting-permissions-to-rendered-kinds).
+The identity that resolves the parameters needs `get`, `list`, and `watch` on every GVK referenced by `objectFieldRef`: the operator's service account, or the `TemplateInstance`'s `serviceAccountRef` ServiceAccount when set. Apart from `Namespace` reads, the chart grants none of these cluster-wide: grant every kind referenced by `secretKeyRef`, `configMapKeyRef`, or `objectFieldRef` through the chart's `rbac.additionalRules`. See [Granting permissions to rendered kinds](../installation/kubernetes.md#granting-permissions-to-rendered-kinds).
 
 ## See also
 

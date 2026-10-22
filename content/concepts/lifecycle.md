@@ -9,8 +9,8 @@ Three finalizers are involved.
 | Finalizer | Placed on | Purpose |
 |-----------|-----------|---------|
 | `templates.v2.stakater.com/finalizer` | `Template` | Blocks deletion while any `TemplateInstance` references this `Template`. |
-| `templates.v2.stakater.com/template-instance` | `TemplateInstance` | Triggers the cleanup pipeline (delete every rendered resource) before the API server removes the `TemplateInstance`. |
-| `templates.v2.stakater.com/template-instance-resource` | Each rendered resource | Lets the operator delete the resource cleanly even if the underlying namespace or owner reference is removed first. |
+| `templates.v2.stakater.com/template-instance` | `TemplateInstance` | Triggers the cleanup pipeline (delete every rendered resource it owns, or release it when its deletion policy is `Orphan`) before the API server removes the `TemplateInstance`. |
+| `templates.v2.stakater.com/template-instance-resource` | Each rendered resource | Holds the resource until the operator deletes or releases it. Under `off` and `revert`, a manual delete leaves the resource in `Terminating`. |
 
 ## Deletion of a Template is blocked while in use
 
@@ -29,39 +29,40 @@ Delete the dependent `TemplateInstance`s first, then the `Template`.
 
 ## Ownership metadata stamped on every rendered resource
 
-Every rendered resource is stamped with three labels that let the operator find it later, even if `status.renderedResources` is stale or lost:
+Every rendered resource is stamped with four labels that let the operator find it later, even if `status.renderedResources` is stale or lost:
 
 | Label | Value |
 |-------|-------|
+| `templates.v2.stakater.com/instance` | `metadata.name` of the owning `TemplateInstance` |
 | `templates.v2.stakater.com/instance-uid` | UID of the owning `TemplateInstance` |
 | `templates.v2.stakater.com/instance-name` | `metadata.name` of the owning `TemplateInstance` |
 | `templates.v2.stakater.com/instance-namespace` | `metadata.namespace` of the owning `TemplateInstance` |
 
-When `sync` is enabled, an additional set of metadata is stamped for the drift webhook: see [Sync](./sync.md#ownership-metadata-used-by-sync).
+The operator also stamps the `instance-ref` annotation in every mode; the drift webhook uses it and the `instance` label: see [Sync](./sync.md#ownership-metadata-used-by-sync).
 
 ## How rendered resources are applied
 
-The operator uses server-side apply as the field manager `template-operator` and takes ownership of every field it writes. Conflicts with another field manager resolve in favor of the operator: edits made by something else are taken back the next time the operator applies. For `sync.mode: off` that never happens after the first clean apply — the instance freezes and applies nothing further (see [Sync](./sync.md)); for `revert` and `strict` it happens on every reconcile.
+The operator uses server-side apply as the field manager `template-operator` and takes ownership of every field it writes. Conflicts with another field manager resolve in favor of the operator: edits made by something else are taken back the next time the operator applies. For `sync.mode: off` that never happens after the first clean apply — the instance freezes and applies nothing further (see [Sync](./sync.md)); for `revert` and `strict` it happens on the next reconcile that finds drift outside `ignoreFields`.
 
 ## Updating a Template: orphan cleanup
 
-When a `Template`'s render output shrinks or its resource names change, resources that were rendered last time but not this time become orphans. On every reconcile, the operator:
+When a `Template`'s render output shrinks or its resource names change, resources that were rendered last time but not this time become orphans. Under the default `sync.mode: off`, the instance is frozen after its first clean apply: a later `Template` change is not applied, and no orphan is cleaned up. With `sync.mode: revert` or `strict`, on every reconcile the operator:
 
 1. Validates the new render with a server-side dry run. If validation fails, the previous `status.renderedResources` is preserved unchanged and the reconcile is retried later, so nothing is lost mid-update.
 1. Applies the new resources.
-1. After a fully successful apply, discovers the set of resources it owns via the ownership labels (across every GVK in `status.trackedGVKs`), computes the difference against the new render, and deletes the orphans.
+1. After a fully successful apply, discovers the set of resources it owns via the ownership labels (across every GVK in `status.trackedGVKs`), computes the difference against the new render, and deletes each orphan, unless it carries `templates.v2.stakater.com/deletion-policy: Orphan` (or `helm.sh/resource-policy: keep`); the operator then releases it and leaves it in place.
 
 Failed deletes are retained in `status.renderedResources` with `status: Failed` and retried on the next reconcile. See [Orphan resource handling](../how-to-guides/orphan-resource-handling.md) for the full failure-mode catalog.
 
 ## Resource adoption
 
-A rendered resource is considered "owned" if it carries the operator's ownership labels and the `templates.v2.stakater.com/template-instance-resource` finalizer. Adoption is the process of taking an existing in-cluster resource and giving it those marks, so that the operator manages it from that point on.
+A rendered resource is considered "owned" if the `template-operator` server-side-apply entry in its `managedFields` owns the `instance-uid` label, or if it is listed in `status.renderedResources` and still carries the `templates.v2.stakater.com/template-instance-resource` finalizer. The labels alone do not prove ownership. Adoption is the process of taking an existing in-cluster resource and applying the render over it, so that the operator manages it from that point on.
 
 There are two paths into adoption.
 
 ### Opt-in: pre-stamp the `instance-ref` annotation
 
-Before the `TemplateInstance` exists, an admin can create a resource manually and annotate it with `templates.v2.stakater.com/instance-ref: <namespace>/<name>` pointing at the `TemplateInstance` they intend to create later. The drift webhook intercepts UPDATE and DELETE only, so the resource is admitted at CREATE time. When the named `TemplateInstance` is eventually created and its render targets the same `apiVersion`/`kind`/`name`/`namespace`, the operator picks the resource up and treats it as one of its rendered outputs.
+Before the `TemplateInstance` exists, an admin can create a resource manually and annotate it with `templates.v2.stakater.com/instance-ref: <namespace>/<name>` pointing at the `TemplateInstance` they intend to create later. The drift webhook intercepts UPDATE and DELETE only, so the resource is admitted at CREATE time. When the named `TemplateInstance` is eventually created and its render targets the same `apiVersion`/`kind`/`name`/`namespace`, the operator picks the resource up and treats it as one of its rendered outputs. The annotation is optional: the operator adopts the resource because the render has the same identity, with or without the annotation.
 
 This is the supported migration path for moving an existing in-cluster resource under operator management without deleting and re-creating it.
 
@@ -75,7 +76,7 @@ What "adopted in place" means:
 - The resource's UID and `creationTimestamp` are preserved (it is mutated, not recreated).
 - The operator stamps it with the ownership labels, the `instance-ref` annotation, and the rendered-resource finalizer.
 - Fields written by the template are taken over from whatever field manager owned them previously.
-- Deleting the `TemplateInstance` will cascade-delete the adopted resource, even though the operator never created it.
+- Deleting the `TemplateInstance` will cascade-delete the adopted resource, even though the operator never created it, unless it carries `templates.v2.stakater.com/deletion-policy: Orphan` (or `helm.sh/resource-policy: keep`); the operator then releases it and leaves it in place.
 
 Mitigation:
 
@@ -87,7 +88,7 @@ See also [Security model](./security.md) for the broader trust boundaries.
 
 ## TemplateInstance deletion
 
-When a `TemplateInstance` enters terminating state, the operator discovers every resource it owns via the ownership labels, deletes each, and then removes its own finalizer. The label-based discovery makes deletion safe even if `status.renderedResources` is empty or stale.
+When a `TemplateInstance` enters terminating state, the operator discovers every resource it owns via the ownership labels, deletes each, and then removes its own finalizer. A resource that carries `templates.v2.stakater.com/deletion-policy: Orphan` (or `helm.sh/resource-policy: keep`) is not deleted; the operator releases it and leaves it in place. The label-based discovery makes deletion safe even if `status.renderedResources` is empty or stale.
 
 ## Inspecting failed cleanups
 

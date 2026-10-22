@@ -1,6 +1,6 @@
 # Helm
 
-`Template.spec.helm` references a Helm chart instead of an inline template. The operator pulls the chart at validation time, renders it with merged values at instance time, and applies the result. Both Helm v3 and v4 SDKs are bundled.
+`Template.spec.helm` references a Helm chart instead of an inline template. The operator pulls the chart when it validates the `Template` and again each time it renders an instance (the chart is not cached), renders it with merged values, and applies the result. Both Helm v3 and v4 SDKs are bundled.
 
 ## When to pick helm over gotemplate
 

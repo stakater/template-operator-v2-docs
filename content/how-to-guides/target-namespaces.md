@@ -84,9 +84,7 @@ status:
     - type: TargetNamespaceAllowed
       status: "False"
       reason: NamespaceNotPermitted
-      message: |
-        Namespace team-x is not permitted to instantiate Template provider/app-template.
-        Check Template's targetNamespaces configuration
+      message: "Namespace team-x is not permitted to instantiate Template provider/app-template. Check Template's targetNamespaces configuration"
     - type: Ready
       status: "False"
       reason: NamespaceNotPermitted

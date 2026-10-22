@@ -27,11 +27,11 @@ A `Template`'s `targetNamespaces` field controls which consumer namespaces are a
 
 ## 5. Standard Kubernetes status reporting
 
-Every CR follows Kubernetes status conventions: a `phase`, an `observedGeneration`, and a list of `conditions` with `Reason` and `Message`. There is no operator-specific status format to learn, `kubectl describe`, `kubectl wait --for=condition=Ready`, and tools like ArgoCD integrate naturally.
+Every CR follows Kubernetes status conventions: a `phase`, an `observedGeneration`, and a list of `conditions` with `Reason` and `Message`. There is no operator-specific status format to learn, `kubectl describe`, `kubectl wait --for=condition=Ready` (`TemplateInstance`) or `--for=condition=Valid` (`Template`), and tools like ArgoCD integrate naturally.
 
 ## 6. Rendered-resource lifecycle is tracked
 
-The operator stamps each rendered resource with a finalizer and records its `apiVersion`, `kind`, `name`, and `namespace` in `status.renderedResources`. Deleting the `TemplateInstance` cleanly removes every rendered resource. With `sync.mode: revert` or `strict`, updating a `Template` to render a smaller set causes orphans to be deleted on the next reconcile.
+The operator stamps each rendered resource with a finalizer and records its `apiVersion`, `kind`, `name`, and `namespace` in `status.renderedResources`. Deleting the `TemplateInstance` removes every rendered resource, unless it carries `templates.v2.stakater.com/deletion-policy: Orphan` (or `helm.sh/resource-policy: keep`); the operator then releases it and leaves it in place. With `sync.mode: revert` or `strict`, updating a `Template` to render a smaller set removes the orphans the same way on the next reconcile.
 
 ## 7. GitOps-friendly
 
