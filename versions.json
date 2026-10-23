@@ -2,6 +2,8 @@
   {
     "version": "fix-serve-at-template-operator-v2",
     "title": "fix-serve-at-template-operator-v2",
-    "aliases": []
+    "aliases": [
+      "latest"
+    ]
   }
 ]
