@@ -1,6 +1,6 @@
 site_name: Template Operator v2
 docs_dir: content
-site_url: https://docs.stakater.com/template-operator-v2-docs/
+site_url: https://docs.stakater.com/template-operator-v2/
 repo_url: https://github.com/stakater/template-operator-v2-docs
 edit_uri: blob/main/content/
 theme:
