@@ -2,6 +2,8 @@
   {
     "version": "fix-serialize-gh-pages-deploys",
     "title": "fix-serialize-gh-pages-deploys",
-    "aliases": []
+    "aliases": [
+      "latest"
+    ]
   }
 ]
