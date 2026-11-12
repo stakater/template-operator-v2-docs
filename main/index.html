@@ -9,14 +9,14 @@
       
       
       
-        <link rel="next" href="about/key-features.html">
+        <link rel="next" href="about/introduction.html">
       
       
         
       
       
       <link rel="icon" href="assets/images/favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -2171,6 +2171,34 @@ This documentation is either for an old version, or for the unreleased 'main' ve
   
   
     <li class="md-nav__item">
+      <a href="about/introduction.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="about/key-features.html" class="md-nav__link">
         
   
@@ -3501,17 +3529,7 @@ This documentation is either for an old version, or for the unreleased 'main' ve
 
 
 <h1 id="welcome-to-the-docs">Welcome to the Docs<a class="headerlink" href="#welcome-to-the-docs" title="Permanent link">#</a></h1>
-<p>Managing Kubernetes clusters at scale is complex. Platform teams have to keep dozens or hundreds of tenant namespaces consistent, secure, and up to date, while still letting application teams move fast and customize what they need. Doing this by hand quickly turns into copy-pasted YAML, drift between environments, and no clear answer to "who owns this resource and is it still needed?"</p>
-<p><strong>Template Operator v2</strong> is designed to address these challenges by giving platform teams a clean way to publish reusable templates, and giving application teams a simple way to consume them. Templates are authored once, parameterized for each consumer, and rendered into the right namespaces by the operator. With Template Operator v2, you can:</p>
-<ul>
-<li><strong>Define reusable templates once</strong> and let many teams instantiate them, without copying YAML between namespaces.</li>
-<li><strong>Parameterize templates</strong> so the same blueprint adapts to each tenant, environment, or use case.</li>
-<li><strong>Govern who can use a template</strong> by letting the platform team decide which namespaces are allowed to consume it.</li>
-<li><strong>Bring your own format</strong>: author templates as inline Go templates with <a href="https://masterminds.github.io/sprig/">Sprig functions</a>, or point at an existing Helm chart from a public or private registry.</li>
-<li><strong>Trust the lifecycle</strong>: the operator tracks every resource it creates and removes them when the request is deleted. With drift protection on, it also applies changes and cleans up resources that are no longer rendered.</li>
-<li><strong>Adopt GitOps naturally</strong>, since both the template and the request to use it are plain Kubernetes resources you can keep in Git.</li>
-</ul>
-<p>Template Operator v2 simplifies cluster administration, enhances security, and makes consistent multi-tenancy practical for organizations of any size.</p>
+<p><strong>Template Operator v2</strong> lets platform teams publish reusable, parameterized templates and lets application teams instantiate them in their namespaces. Read the <a href="about/introduction.html">Introduction</a> for what it does and why.</p>
 <h2 id="two-custom-resources">Two custom resources<a class="headerlink" href="#two-custom-resources" title="Permanent link">#</a></h2>
 <table>
 <thead>
@@ -4254,7 +4272,7 @@ This documentation is either for an old version, or for the unreleased 'main' ve
       <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["content.code.copy", "navigation.tracking", "toc.follow", "navigation.top"], "search": "assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   
