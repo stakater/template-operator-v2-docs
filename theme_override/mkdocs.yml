@@ -19,6 +19,7 @@ extra:
 nav:
   - index.md
   - About:
+      - about/introduction.md
       - about/key-features.md
       - about/benefits.md
   - Concepts:
